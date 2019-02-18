@@ -70,7 +70,7 @@ def affiche_contour_couleurs_differentes(liste_contour, nb_pixel_x, nb_pixel_y):
     return
 
 
-def detecte_palets(img, couleur="vert", affichage=0):
+def detecte_palets(img, couleur="vert", affichage=1):
     #retourne une liste contenant les centres de tous les palets de la couleur demandée
     #passer 0 en paramètre d'affichage pour ne pas afficher les images intermédiaires
     assert couleur in ["rouge", "vert", "bleu"]
@@ -126,7 +126,7 @@ def detecte_palets(img, couleur="vert", affichage=0):
             centre_y += liste_contour_tries[i][j][0][0]
         liste_centre_palets[i][1] = centre_x//len(liste_contour_tries[i])
         liste_centre_palets[i][0] = centre_y//len(liste_contour_tries[i])
-        if affichage == 1:
+        if affichage:
             print(centre_x,len(liste_contour_tries[i]),liste_centre_palets[i][1])
             print(centre_y,len(liste_contour_tries[i]),liste_centre_palets[i][0])
 
@@ -145,7 +145,7 @@ def detecte_palets(img, couleur="vert", affichage=0):
     cv2.imwrite(nom_fichier+"_contours_seuls.png", img_contours)
     #cv2.imwrite(nom_fichier+"_image_et_contours.png", img_couleur)
     """
-
-    print("initialement :",len(liste_contour),"contours")
-    print(len(liste_contour_tries),"contours sélectionnés")
+    if affichage:
+        print("initialement :",len(liste_contour),"contours")
+        print(len(liste_contour_tries),"contours sélectionnés")
     return liste_centre_palets
