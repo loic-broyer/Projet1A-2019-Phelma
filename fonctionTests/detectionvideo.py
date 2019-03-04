@@ -11,9 +11,9 @@ while True:
     if not has_frame:
         print("error reading the frame")
         break
-    liste_centre_palets_vert= f.detecte_palets(frame, "vert",0)
+    liste_centre_palets_vert= f.detecte_palets(frame, "vert",1)
     for point in liste_centre_palets_vert:
-        cv2.circle(frame,point,3,(255,0,0),-1)
+        cv2.circle(frame,tuple(point),3,(255,0,0),-1)
     cv2.imshow('camera',frame)
     key = cv2.waitKey(3)
     if key == 27:

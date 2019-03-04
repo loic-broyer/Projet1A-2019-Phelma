@@ -13,12 +13,13 @@ def seuillageCouleur(img,Hmin=0,Hmax=179,Smin=0,Smax=255,Vmin=0,Vmax=255):
     HSVImg = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     return cv2.inRange(HSVImg, np.array([Hmin,Smin,Vmin]), np.array([Hmax,Smax,Vmax]))
 
-def tri_contour_taille(liste_contour):
+def tri_contour_taille(liste_contour,affichage = 0):
     #Tri des contours suivant leur périmètre et leur taille en x et en y:
     liste_contour_tries=[]
     for i in range(len(liste_contour)):
         if len(liste_contour[i])>=perimetre_min and len(liste_contour[i])<=perimetre_max:
-            print("contour n° "+str(i)+" avec ",len(liste_contour[i])," pixels")
+            if affichage:
+                print("contour n° "+str(i)+" avec ",len(liste_contour[i])," pixels")
             max_x=liste_contour[i][0][0][0]
             max_y=liste_contour[i][0][0][1]
             min_x=liste_contour[i][0][0][0]
@@ -35,7 +36,8 @@ def tri_contour_taille(liste_contour):
             delta_x = max_x - min_x
             delta_y = max_y - min_y
             if delta_x >= delta_x_min and delta_x <= delta_x_max and delta_y >= delta_y_min and delta_y <= delta_y_max:
-                print("contour n° "+str(i)+"x E", min_x, max_x, "y E", min_y, max_y)
+                if affichage:
+                    print("contour n° "+str(i)+"x E", min_x, max_x, "y E", min_y, max_y)
                 liste_contour_tries.append(liste_contour[i])
     return liste_contour_tries
 
@@ -88,14 +90,12 @@ def detecte_palets(img, couleur="vert", affichage=1):
     if affichage != 0:
         cv2.imshow('image seuillée pour le '+couleur, img)
         cv2.imshow('image passée au filtre de Canny pour le '+couleur, img_canny)
-        cv2.waitKey(0)
 
     #########################################################
     #Regroupement des pixels détectés par contour
     liste_contour, _ = cv2.findContours(img_canny, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
     if affichage != 0:
         affiche_contour_couleurs_differentes(liste_contour, img.shape[0], img.shape[1])
-        cv2.waitKey(0)
 
     #########################################################
     #Tri des contours
@@ -113,7 +113,7 @@ def detecte_palets(img, couleur="vert", affichage=1):
 #    cv2.imshow('image initiale + contours triés', img)
     if affichage != 0:
         cv2.imshow('image initiale + contours triés', img_contours)
-        cv2.waitKey(0)
+
 
     ##########################################################
     #Calcule le centre des contours
@@ -136,7 +136,7 @@ def detecte_palets(img, couleur="vert", affichage=1):
 
     if affichage != 0:
         cv2.imshow('contour triés', img_contours)
-        cv2.waitKey(0)
+
 
     ###########################################################
     """
