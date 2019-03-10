@@ -1,0 +1,93 @@
+import numpy as np
+import matplotlib as plt
+import cv2
+
+print("ca a commencé")
+
+def acquisition(chemin):##permet d'acquérir l'image
+    img=cv2.imread(chemin,0)
+    img = cv2.resize(img, (300, 400))
+    print('image lue2')
+    print(img)
+    longueur,largeur=img.shape
+    return(img,longueur,largeur)
+
+print("acquisition est passé")
+
+def init_seuil(image1,image2,longueur,largeur):##initiialisation à faire en début de match pour observer le bruit ambient. Le cas échéant on peut moyenner sur plusieurs images
+    maxmoy=0
+    maxim=0
+    for long in range (longueur):
+        maxim=0
+        for larg in range (largeur):
+            if image1[long,larg]>image2[long,larg]:
+                if maxim<(image1[long,larg]-image2[long,larg]):
+                    maxim=image1[long,larg]-image2[long,larg]
+            else:
+                if maxim<(image2[long,larg]-image1[long,larg]):
+                    maxim=image2[long,larg]-image1[long][larg]
+        maxmoy+=(maxim/longueur)%1
+    print("le seil est")
+    print(maxmoy)
+    return(maxmoy)
+
+print("init est passé")
+
+def variations(image2,image1,longueur,largeur,seuil):
+    #detecte les variations et pas les contours, sinon va détecter toutes les formes préentes sur le terrain
+    variation=image1
+    listevariation=[]
+    for long in range (longueur):
+        for larg in range (largeur):
+            if(image1[long,larg]>image2[long,larg]):
+                if (image1[long,larg]-image2[long,larg])<=seuil:
+                    variation[long,larg]=0
+                else:
+                    variation[long][larg]=255
+                    listevariation.append([long,larg])
+            else:
+                if (image2[long,larg]-image1[long,larg])<=seuil:
+                    variation[long,larg]=0
+                else:
+                    variation[long][larg]=255
+                    listevariation.append([long,larg])
+    return(variation,listevariation)
+
+print("variations est passé")
+
+def nettoyage(variation,listevariation):
+    for k in range(len(listevariation)):
+        compteur=0
+        for i in range(-1,1,1):
+            for j in range(-1,1,1):
+                if (variation[listevariation[k][0]+i][listevariation[k][1]+j]>0):
+                    compteur+=1
+        if(compteur<3):
+            variation[listevariation[k][0]][listevariation[k][1]]=0
+            listevariation=listevariation[0:k-1]+listevariation[k+1:len(listevariation)]
+
+
+##on commence par charger  et redimmensionner les images
+image1,longueur,largeur=acquisition('init1.jpg')
+cv2.imshow("image1", image1)
+
+image2,longueur,largeur=acquisition('init2.jpg')
+cv2.imshow("image2", image2)
+
+image3,longueur,largeur=acquisition('mvt1.jpg')
+cv2.imshow("image3", image3)
+
+image4,longueur,largeur=acquisition('mvt2.jpg')
+cv2.imshow("image4", image4)
+
+
+longueur=400
+largeur=300
+
+seuil=init_seuil(image1,image2,longueur,largeur)
+print(seuil)
+variation,listevariation=variations(image3,image4,longueur,largeur,seuil)
+print(variation)
+##print(listevariation)
+nettoyage(variation,listevariation)
+cv2.imshow("variation", variation)
