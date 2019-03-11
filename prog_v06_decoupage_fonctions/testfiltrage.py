@@ -32,34 +32,64 @@ assert img_source is not None # vérifie que l'image a bien été chargée
 ratio = img_source.shape[1]/img_source.shape[0]
 img_resized = cv2.resize(img_source,(int(600*ratio),600))
 print(img_resized.shape)
-#blur =
+
 
 print('dimensions :', img_source.shape)
 print('dtype:', img_source.dtype)
 #img.shape[0] nb de ligne
 #img.shape[1] nb de colonne
 #cv.imwrite('sortie.png', img_renverse,[cv.IMWRITE_PNG_COMPRESSION, 0])
-#cv2.imshow('image resized', img_resized)
-#key = cv2.waitKey(2000)
+
 blurred = cv2.GaussianBlur(img_resized,(7,7), 0)
-#cv2.imshow('img',blurred)
-thresholded = threshold(blurred,32,41,41,255)
-#cv2.imshow('img',thresholded)
-
-
 def nothing(x):
     pass
 cv2.namedWindow('window')
-cv2.createTrackbar('iteration','window',1,8,nothing)
+cv2.createTrackbar('iterationDilatation','window',0,8,nothing)
+cv2.createTrackbar('iterationOuverture','window',0,8,nothing)
+cv2.createTrackbar('aireMin','window',0,500,nothing)
+cv2.createTrackbar('aireMax','window',0,500,nothing)
+cv2.createTrackbar('periMin','window',0,500,nothing)
+cv2.createTrackbar('periMax','window',0,500,nothing)
+cv2.createTrackbar('Hmin','window',0,179,nothing)
+cv2.createTrackbar('Hmax','window',0,179,nothing)
+cv2.createTrackbar('Smin','window',0,255,nothing)
+cv2.createTrackbar('Smax','window',0,255,nothing)
+cv2.createTrackbar('Vmin','window',0,255,nothing)
+cv2.createTrackbar('Vmax','window',0,255,nothing)
 
 
 
 while True:
-    nbIteration = cv2.getTrackbarPos('iteration','window')
+    nbIterationOuverture = cv2.getTrackbarPos('iterationOuverture','window')
+    nbIterationDilatation = cv2.getTrackbarPos('iterationDilatation','window')
+    aireMin = cv2.getTrackbarPos('aireMin','window')
+    aireMax = cv2.getTrackbarPos('aireMax','window')
+    periMin = cv2.getTrackbarPos('periMin','window')
+    periMax = cv2.getTrackbarPos('periMax','window')
+    Hmin = cv2.getTrackbarPos('Hmin','window')
+    Hmax = cv2.getTrackbarPos('Hmax','window')
+    Smin = cv2.getTrackbarPos('Smin','window')
+    Smax = cv2.getTrackbarPos('Smax','window')
+    Vmin = cv2.getTrackbarPos('Vmin','window')
+    Vmax = cv2.getTrackbarPos('Vmax','window')
+
+
+    filtered = threshold(blurred,Hmin,Hmax,Smin,Smax,Vmin,Vmax)
+    filtered = cv2.dilate(filtered, None, iterations=nbIterationDilatation)
+
+
     #ouverture
-    filtered = cv2.erode(thresholded, None, iterations=nbIteration)
-    filtered = cv2.dilate(filtered, None, iterations=nbIteration)
+    filtered = cv2.erode(filtered, None, iterations=nbIterationOuverture)
+    filtered = cv2.dilate(filtered, None, iterations=nbIterationOuverture)
+
+    liste_contour, _ = cv2.findContours(filtered, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+    liste_contour = triContourPerimetre(liste_contour,periMin,periMax)
+    liste_contour = triContourAire(liste_contour,aireMin,aireMax)
+    contourBackground = np.copy(img_resized)
+    DrawContoursDifferentColors(liste_contour,contourBackground)
+
     cv2.imshow('window',filtered)
+    cv2.imshow('contours',contourBackground)
     key = cv2.waitKey(3)
     if key == 27:
         break

@@ -30,7 +30,7 @@ import numpy as np
 # cv2.waitKey(2000)
 
 
-sourceImg = cv2.imread("photo_test_1.jpg")
+sourceImg = cv2.imread("photo_palets_1.jpg")
 sourceImg = cv2.resize(sourceImg,(500,500))
 assert sourceImg is not None
 

@@ -1,14 +1,6 @@
 import cv2
 import numpy as np
 
-delta_x_min = 15#en nombre de pixels
-delta_x_max = 40
-delta_y_min = delta_x_min
-delta_y_max = delta_x_max
-perimetre_min = 3*delta_x_min
-perimetre_max = 3*delta_x_max
-aire_min = delta_x_min**2
-
 
 def centroid(contour):
     """Returns the coordinate X and Y of the centroid of the input contour in the form of a tuple"""
@@ -23,11 +15,23 @@ def centroid(contour):
 
 def threshold(img,Hmin=0,Hmax=179,Smin=0,Smax=255,Vmin=0,Vmax=255):
     HSVImg = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-    return cv2.inRange(HSVImg, np.array([Hmin,Smin,Vmin]), np.array([Hmax,Smax,Vmax]))
+    if Hmin<=Hmax:
+        return cv2.inRange(HSVImg, np.array([Hmin,Smin,Vmin]), np.array([Hmax,Smax,Vmax]))
+    else:
+        #seuillage de 0 à Hmax
+        img_temp_1 = cv2.inRange(HSVImg, np.array([0,Smin,Vmin]), np.array([Hmax,Smax,Vmax]))
+        #seuillage de Hmin à 179
+        img_temp_2 = cv2.inRange(HSVImg, np.array([Hmin,Smin,Vmin]), np.array([179,Smax,Vmax]))
+        #somme des deux
+        for i in range(img_temp_1.shape[0]):
+            for j in range(img_temp_1.shape[1]):
+                if img_temp_2[i][j]==255:
+                    img_temp_1[i][j]=255
+        return img_temp_1
 
 
 
-def tri_contour_taille(liste_contour):
+def triContourPerimetre(liste_contour,perimetre_min,perimetre_max):
     #Tri des contours suivant leur périmètre et leur taille en x et en y:
     liste_contour_tries=[]
     for i in range(len(liste_contour)):
@@ -36,19 +40,19 @@ def tri_contour_taille(liste_contour):
             liste_contour_tries.append(liste_contour[i])
     return liste_contour_tries
 
-def tri_contour_aire(liste_contour):
+def triContourAire(liste_contour,aire_min,aire_max):
     #Tri des contours
     #supprime les contours qui ont une aire trop petite
     liste_contour_tries=[]
     for i in range(len(liste_contour)):
-        if cv2.contourArea(liste_contour[i]) >= aire_min:
+        aire = cv2.contourArea(liste_contour[i])
+        if aire >= aire_min and aire <= aire_max :
             liste_contour_tries.append(liste_contour[i])
     return liste_contour_tries
 
-def affiche_contour_couleurs_differentes(liste_contour, nb_pixel_x, nb_pixel_y):
+def DrawContoursDifferentColors(liste_contour, img):
     #prend en paramètre les dimensions de l'image dont on a pris les contours
     #affiche tous les contours avec une couleur différente par contour
-    img_tous_les_contours = np.full((nb_pixel_x, nb_pixel_y, 3), 0, np.uint8)
     for i in range(len(liste_contour)):
         a=(15*i)%256
         b=(22*i)%256
@@ -58,12 +62,8 @@ def affiche_contour_couleurs_differentes(liste_contour, nb_pixel_x, nb_pixel_y):
             b+=30
             c+=30
         couleur=[a,b,c]
-        for j in range(len(liste_contour[i])):
-            x=liste_contour[i][j][0][1]
-            y=liste_contour[i][j][0][0]
-            img_tous_les_contours[x][y]=couleur
-    cv2.imshow('tous les contours', img_tous_les_contours)
-    cv2.imwrite("contours.png", img_tous_les_contours)
+        cv2.drawContours(img,liste_contour[i],-1,couleur,2)
+
 
 
 def detecte_palets(img, couleur="vert", affichage=0):
@@ -78,7 +78,7 @@ def detecte_palets(img, couleur="vert", affichage=0):
     elif couleur == "bleu":
         img = seuillageCouleur(img,81,102,50)
     else:
-        img = seuillageCouleur(img,81,102,50)
+        img = seuillageCouleur(img,177,10,60)
 
     img_canny = cv2.Canny(img, 50, 100, 3)
     if affichage != 0:
