@@ -13,22 +13,21 @@ def centroid(contour):
         return(Cx,Cy)
 
 
-def threshold(img,Hmin=0,Hmax=179,Smin=0,Smax=255,Vmin=0,Vmax=255):
-    HSVImg = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-    if Hmin<=Hmax:
-        return cv2.inRange(HSVImg, np.array([Hmin,Smin,Vmin]), np.array([Hmax,Smax,Vmax]))
-    else:
-        #seuillage de 0 à Hmax
-        img_temp_1 = cv2.inRange(HSVImg, np.array([0,Smin,Vmin]), np.array([Hmax,Smax,Vmax]))
-        #seuillage de Hmin à 179
-        img_temp_2 = cv2.inRange(HSVImg, np.array([Hmin,Smin,Vmin]), np.array([179,Smax,Vmax]))
-        #somme des deux
-        for i in range(img_temp_1.shape[0]):
-            for j in range(img_temp_1.shape[1]):
-                if img_temp_2[i][j]==255:
-                    img_temp_1[i][j]=255
-        return img_temp_1
-
+def threshold(hsv_img,Hmin=0,Hmax=179,Smin=0,Smax=255,Vmin=0,Vmax=255):
+    #if Hmin<=Hmax:
+    return cv2.inRange(hsv_img, np.array([Hmin,Smin,Vmin]), np.array([Hmax,Smax,Vmax]))
+    # else:
+    #     #seuillage de 0 à Hmax
+    #     img_temp_1 = cv2.inRange(HSVImg, np.array([0,Smin,Vmin]), np.array([Hmax,Smax,Vmax]))
+    #     #seuillage de Hmin à 179
+    #     img_temp_2 = cv2.inRange(HSVImg, np.array([Hmin,Smin,Vmin]), np.array([179,Smax,Vmax]))
+    #     #somme des deux
+    #
+    #     # for i in range(img_temp_1.shape[0]):
+    #     #     for j in range(img_temp_1.shape[1]):
+    #     #         if img_temp_2[i][j]==255:
+    #     #             img_temp_1[i][j]=255
+    #
 
 
 def triContourPerimetre(liste_contour,perimetre_min,perimetre_max):
