@@ -40,16 +40,16 @@ print('dtype:', img_source.dtype)
 #img.shape[1] nb de colonne
 #cv.imwrite('sortie.png', img_renverse,[cv.IMWRITE_PNG_COMPRESSION, 0])
 
-blurred = cv2.GaussianBlur(img_resized,(7,7), 0)
+
 def nothing(x):
     pass
 cv2.namedWindow('window')
 cv2.createTrackbar('iterationDilatation','window',0,8,nothing)
 cv2.createTrackbar('iterationOuverture','window',0,8,nothing)
-cv2.createTrackbar('aireMin','window',0,500,nothing)
-cv2.createTrackbar('aireMax','window',0,500,nothing)
-cv2.createTrackbar('periMin','window',0,500,nothing)
-cv2.createTrackbar('periMax','window',0,500,nothing)
+cv2.createTrackbar('aireMin','window',0,10000,nothing)
+cv2.createTrackbar('aireMax','window',0,10000,nothing)
+cv2.createTrackbar('periMin','window',0,10000,nothing)
+cv2.createTrackbar('periMax','window',0,10000,nothing)
 cv2.createTrackbar('Hmin','window',0,179,nothing)
 cv2.createTrackbar('Hmax','window',0,179,nothing)
 cv2.createTrackbar('Smin','window',0,255,nothing)
@@ -57,6 +57,8 @@ cv2.createTrackbar('Smax','window',0,255,nothing)
 cv2.createTrackbar('Vmin','window',0,255,nothing)
 cv2.createTrackbar('Vmax','window',0,255,nothing)
 
+
+capture = cv2.VideoCapture(0)
 
 
 while True:
@@ -73,6 +75,11 @@ while True:
     Vmin = cv2.getTrackbarPos('Vmin','window')
     Vmax = cv2.getTrackbarPos('Vmax','window')
 
+    has_frame, frame = capture.read()
+    if not has_frame:
+        print("error reading the frame")
+        break
+    blurred = cv2.GaussianBlur(frame,(7,7), 0)
 
     filtered = threshold(blurred,Hmin,Hmax,Smin,Smax,Vmin,Vmax)
     filtered = cv2.dilate(filtered, None, iterations=nbIterationDilatation)
@@ -85,7 +92,7 @@ while True:
     liste_contour, _ = cv2.findContours(filtered, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
     liste_contour = triContourPerimetre(liste_contour,periMin,periMax)
     liste_contour = triContourAire(liste_contour,aireMin,aireMax)
-    contourBackground = np.copy(img_resized)
+    contourBackground = np.copy(frame)
     DrawContoursDifferentColors(liste_contour,contourBackground)
 
     cv2.imshow('window',filtered)
