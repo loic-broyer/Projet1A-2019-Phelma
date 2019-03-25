@@ -35,7 +35,7 @@ def triContourPerimetre(liste_contour,perimetre_min,perimetre_max):
     liste_contour_tries=[]
     for i in range(len(liste_contour)):
         if len(liste_contour[i])>=perimetre_min and len(liste_contour[i])<=perimetre_max:
-            print("contour n° "+str(i))
+            #print("contour n° "+str(i))
             liste_contour_tries.append(liste_contour[i])
     return liste_contour_tries
 
