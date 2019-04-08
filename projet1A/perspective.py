@@ -50,9 +50,10 @@ class Camera:
         self.c_omega = math.cos(omega)
         self.s_omega = math.sin(omega)
         
-"""coordImageToCoordReelle(cam, u, v, h) : Transforme les coordonnees en pixel sur l'image d'un point correspondant à une balise ou un palet en coordonnees reelles dans le plan de jeu.
-u et v les coordonnees du point sur l'image, h la hauteur de la balise recherchee (palet ou robot), camera l'objet caméra"""
+
 def coordImageToCoordReelle(cam, u, v, h):
+    """coordImageToCoordReelle(cam, u, v, h) : Transforme les coordonnees en pixel sur l'image d'un point correspondant à une balise ou un palet en coordonnees reelles dans le plan de jeu.
+    u et v les coordonnees du point sur l'image, h la hauteur de la balise recherchee (palet ou robot), camera l'objet caméra"""
 
     #Conversion des coordonnées image en vecteur direction (attention il faut tenir compte du fait que l'image est retournée ou pas)
     x = (u*(2.0/cam.resoX) - 1) *cam.t_beta0

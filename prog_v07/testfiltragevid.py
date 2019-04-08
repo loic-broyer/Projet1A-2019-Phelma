@@ -76,6 +76,8 @@ while True:
     Vmax = cv2.getTrackbarPos('Vmax','trackbar')
     minDistHough = cv2.getTrackbarPos('minDistHough','trackbar')
     dpHough = cv2.getTrackbarPos('dpHough','trackbar')
+
+    
     key = cv2.waitKey(1)
 
     if key == ord('p'):
