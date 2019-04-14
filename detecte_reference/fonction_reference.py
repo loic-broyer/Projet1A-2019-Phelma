@@ -40,6 +40,7 @@ def affiche_ligne(img, liste_lignes, couleur=128, epaisseur=1):
 
 
 def reference(img_init):
+    """retourne les coordonnées des quatre points sur l'image passée en argument, retourne aussi un entier indiquant si la détection a fonctionnée"""
     #création d'un masque pour ignorer une partie de l'image
     masque = np.zeros((720, 790), np.uint8)
     masque = cv2.fillConvexPoly(masque, np.array([[[0,t_masque],[0,790],[790,790],[790,0],[t_masque,0]]], dtype=np.int32), color=255)
@@ -78,8 +79,7 @@ def reference(img_init):
 
     img_quart = img_init[img_init.shape[0]//2:img_init.shape[0],img_init.shape[1]//2:img_init.shape[1]]
     img_debruite = cv2.GaussianBlur(img, (3, 3), 0)#un  petit débruitage avant le seuillage
-    saturation_moy = np.mean(img_quart[:,:,1])#on définit le seuil à partir de la saturation de la luminosité moyenne
-    luminosite_moy = np.mean(img_quart[:,:,2])#d'un morceau de l'image où il n'y a que le fond du tapis de jeu
+    luminosite_moy = np.mean(img_quart[:,:,2])#on définit le seuil à partir de la luminosité moyenne d'un morceau de l'image où il n'y a que le fond du tapis de jeu
     img_seuillee = threshold(img_debruite, Vmin=int(luminosite_moy+luminosite))
 
     img_seuillee = cv2.erode(img_seuillee, None, iterations=1)
