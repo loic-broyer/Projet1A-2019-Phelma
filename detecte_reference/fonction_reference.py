@@ -23,22 +23,6 @@ angle_max = int(pi*1000)-200
 reso_angle_2 = 4
 
 
-def affiche_ligne(img, liste_lignes, couleur=128, epaisseur=1):
-    """affiche les lignes passées en coordonnées polaires"""
-    img = cv2.putText(img, str(len(liste_lignes))+" lignes detectees", (8,20), cv2.FONT_HERSHEY_PLAIN, 1, 255)
-    for i in range(len(liste_lignes)):
-        rho = liste_lignes[i][0][0]
-        theta = liste_lignes[i][0][1]
-        a = cos(theta)
-        b = sin(theta)
-        #print("rho : ", liste_lignes[i][0][0],"theta : ", liste_lignes[i][0][1],(int(liste_lignes[i][0][0]/cos(liste_lignes[i][0][1])), 0), (0, int(liste_lignes[i][0][0]/cos(pi/2 - liste_lignes[i][0][1]))))
-        #prog perso : img = cv2.line(img, (int(rho/a), 0), (0, int(rho/b)), couleur)
-        #source de la ligne suivante : https://docs.opencv.org/3.4.0/d9/db0/tutorial_hough_lines.html
-        img = cv2.line(img, (int(a*rho - 1000*b), int(b*rho + 1000*a)), (int(a*rho+1000*b), int(b*rho-1000*a)), couleur, epaisseur)
-    return img
-
-
-
 def reference(img_init):
     """retourne les coordonnées des quatre points sur l'image passée en argument, retourne aussi un entier indiquant si la détection a fonctionnée"""
     #création d'un masque pour ignorer une partie de l'image
