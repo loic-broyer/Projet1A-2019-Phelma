@@ -150,4 +150,4 @@ def reference(img_init):
     point3 = (point1[0]-int(L_rouge*cos(pi/2 - theta1)), point1[1]+int(L_rouge*sin(pi/2 - theta1)))
     point4 = (point2[0]-int(L_bleu*cos(pi/2 - theta2)), point2[1]+int(L_bleu*sin(pi/2 - theta2)))
 
-    return 1, point1, point2, point3, point4
+    return 1, point4, point2, point1, point3
