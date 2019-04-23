@@ -1,5 +1,6 @@
 #pour éxecuter : ce placer dans le dossier du fichier
-#python3 ./detecte_reference_avec_hough_classique.py
+#python3 ./etalonnage_detecte_reference.py
+#résolution de la video en entrée : 640 * 480
 
 import cv2
 import numpy as np
@@ -10,7 +11,7 @@ import time
 from fonctions_v0_6 import *
 import matplotlib.pyplot as plt
 
-nom_fichier = "videos_test/video_5.mp4"
+nom_fichier = "videos_test/video_rasp_1.avi"
 
 ############################################################
 print("opencv version :", cv2.__version__)
@@ -23,23 +24,21 @@ capture = cv2.VideoCapture(nom_fichier)
 
 #########
 #paramètres à donner
-L_rouge = 240
-L_bleu = 215
+L_rouge = 106
+L_bleu = 98
 
 cv2.namedWindow("Hough")
 cv2.namedWindow("seuillee et droite")
 cv2.namedWindow("Hough 2")
 plt.figure(1)
-nb_vote_min = 300
+nb_vote_min = 180
 reso_angle = 2
 pause = 900
 luminosite = 10
 nb_dilatation = 4
-t_masque=200
 seuil_canny=50
 cv2.createTrackbar('nb vote min',"Hough",nb_vote_min,350,lambda x: None)
 cv2.createTrackbar('seuil canny',"Hough",seuil_canny,100,lambda x: None)
-cv2.createTrackbar('t_masque',"Hough",t_masque,400,lambda x: None)
 cv2.createTrackbar('resolution en millieme de radian',"Hough",reso_angle,50,lambda x: None)
 cv2.createTrackbar("pause entre chaque image en ms","Hough",pause,1000,lambda x: None)
 cv2.createTrackbar("decalage luminosite","seuillee et droite",luminosite,255,lambda x: None)
@@ -48,7 +47,7 @@ cv2.createTrackbar("nb dilatation","seuillee et droite",nb_dilatation,4,lambda x
 nb_vote_min_2 = 90
 angle_min = int(pi*1000/2)
 angle_max = int(pi*1000)-200
-reso_angle_2 = 4
+reso_angle_2 = 2
 cv2.createTrackbar('nb vote min 2',"Hough 2",nb_vote_min_2,200,lambda x: None)
 cv2.createTrackbar('resolution en millieme de radian 2',"Hough 2",reso_angle_2,50,lambda x: None)
 
@@ -86,7 +85,6 @@ while cv2.waitKey(pause)!=27:
 
     nb_vote_min = cv2.getTrackbarPos('nb vote min',"Hough")
     seuil_canny = cv2.getTrackbarPos('seuil canny',"Hough")
-    t_masque = cv2.getTrackbarPos('t_masque',"Hough")
     reso_angle = cv2.getTrackbarPos('resolution en millieme de radian',"Hough")
     pause = cv2.getTrackbarPos("pause entre chaque image en ms","Hough")
     luminosite = cv2.getTrackbarPos("decalage luminosite","seuillee et droite")
@@ -97,24 +95,22 @@ while cv2.waitKey(pause)!=27:
 
     debut_tot=time.clock()
 
-    #création d'un masque pour ignorer une partie de l'image
-    masque = np.zeros((720, 790), np.uint8)
-    masque = cv2.fillConvexPoly(masque, np.array([[[0,t_masque],[0,790],[790,790],[790,0],[t_masque,0]]], dtype=np.int32), color=255)
-
     ###################################################
-    #réduction de la dimension de l'image
-    img_init=cv2.resize(img_init,(1280, 720))
-    #img_init = cv2.flip(img_init, 1)
+    img_init = cv2.flip(img_init, -1)#remet dans le bon sens l'image issue de la caméra du Raspberry pi
 
 
-    img_init = np.concatenate((np.zeros((img_init.shape[0], 100, 3), np.uint8), img_init), axis=1)#rajoute une bande noire à gauche
     img_resultat = copy.deepcopy(img_init)
 
-    img = img_init[:,0:img_init.shape[1]//2+100]#on ne traite que la partie gauche de l'image
-    img_canny = cv2.Canny(img, 2*seuil_canny, seuil_canny, 3)
+    img = img_init[0:350,0:500]#on ne traite que la partie gauche de l'image
+    img_canny = cv2.Canny(img, 2*seuil_canny, seuil_canny)
+
+    #création d'un masque pour ignorer une partie de l'image
+    masque = np.zeros((img.shape[0], img.shape[1]), np.uint8)
+    masque = cv2.fillConvexPoly(masque, np.array([[[100,350],[0,200],[0,100],[300,0],[400,0],[500,100],[500,200],[200,350]]], dtype=np.int32), color=255)
     img_canny = np.bitwise_and(masque, img_canny)#supprime le coin à gauche de la détection
     #cv2.imshow("Canny", img_canny)
 
+    img_resultat = cv2.putText(img_resultat, "pretraitement "+str(int((time.clock()-debut_tot)*1000))+" ms", (8,img_resultat.shape[0]-20), cv2.FONT_HERSHEY_PLAIN, 2, 255, thickness=2)
     #####################################################
     #détecte des droites avec la transformée de Hough
     #Le deuxième argument est la résolution de la distance en pixels
@@ -123,7 +119,7 @@ while cv2.waitKey(pause)!=27:
     #1° = 0.017rad
     #La fonction HoughLines renvoie une liste de droites données en coordonnées polaires (rho, theta)
     debut=time.clock()
-    lignes = cv2.HoughLines(img_canny, 1, reso_angle/1000, nb_vote_min, min_theta=0.3, max_theta=0.8)
+    lignes = cv2.HoughLines(img_canny, 1, reso_angle/1000, nb_vote_min, min_theta=1, max_theta=1.2)
     if type(lignes)==type(None):
         img_resultat = cv2.putText(img_resultat, "ERREUR : hough 1", (img_resultat.shape[1]//3,img_resultat.shape[0]//3), cv2.FONT_HERSHEY_PLAIN, 3, 255, thickness=3)
         cv2.imshow("resultat", img_resultat)
@@ -149,6 +145,7 @@ while cv2.waitKey(pause)!=27:
     #img_canny = cv2.putText(img_canny, "image numero "+str(n_image), (8,60), cv2.FONT_HERSHEY_PLAIN, 1, 255)
     img_hough = cv2.cvtColor(img_canny, cv2.COLOR_GRAY2BGR)
     img_hough = cv2.putText(img_hough, "execute en : "+str(time.clock()-debut)+" s", (8,40), cv2.FONT_HERSHEY_PLAIN, 1, 255)
+    img_resultat = cv2.putText(img_resultat, "Hough1 "+str(int((time.clock()-debut)*1000))+" ms", (8,img_resultat.shape[0]-60), cv2.FONT_HERSHEY_PLAIN, 2, 255, thickness=2)
     img_hough = cv2.putText(img_hough, "rho "+str(rho_top)+" theta "+str(theta_top), (8,60), cv2.FONT_HERSHEY_PLAIN, 1, 255)
     img_hough = affiche_ligne(img_hough, lignes, [0,0,255])
     img_hough = affiche_ligne(img_hough, lignes_top, [255,0,255])
@@ -159,8 +156,7 @@ while cv2.waitKey(pause)!=27:
     debut=time.clock()
     img_quart = img_init[img_init.shape[0]//2:img_init.shape[0],img_init.shape[1]//2:img_init.shape[1]]
     img_debruite = cv2.GaussianBlur(img, (3, 3), 0)#un  petit débruitage avant le seuillage
-    saturation_moy = np.mean(img_quart[:,:,1])#on définit le seuil à partir de la saturation de la luminosité moyenne
-    luminosite_moy = np.mean(img_quart[:,:,2])#d'un morceau de l'image où il n'y a que le fond du tapis de jeu
+    luminosite_moy = np.mean(img_quart[:,:,2])#on définit le seuil à partir de la saturation de la luminosité moyenne d'un morceau de l'image où il n'y a que le fond du tapis de jeu
     img_seuillee = threshold(img_debruite, Vmin=int(luminosite_moy+luminosite))
 
     img_seuillee = cv2.erode(img_seuillee, None, iterations=1)
@@ -169,7 +165,6 @@ while cv2.waitKey(pause)!=27:
     img_droite = np.zeros((img_canny.shape[0], img_canny.shape[1]), np.uint8)
     img_droite = cv2.line(img_droite, (int(lignes_top[0][0][0]/cos(lignes_top[0][0][1])), 0), (0, int(lignes_top[0][0][0]/cos(pi/2 - lignes_top[0][0][1]))), 255)
     img_droite2 = np.bitwise_or(img_droite, img_seuillee)
-    img_droite2 = cv2.putText(img_droite2, "saturation moyenne : "+str(saturation_moy), (8,20), cv2.FONT_HERSHEY_PLAIN, 1, 128)
     img_droite2 = cv2.putText(img_droite2, "luminosite moyenne : "+str(luminosite_moy), (8,40), cv2.FONT_HERSHEY_PLAIN, 1, 128)
     img_droite2 = cv2.putText(img_droite2, "execute en : "+str(time.clock()-debut)+" s", (8,60), cv2.FONT_HERSHEY_PLAIN, 1, 128)
     cv2.imshow("seuillee et droite", img_droite2)
@@ -197,11 +192,13 @@ while cv2.waitKey(pause)!=27:
     #on prend les deux extremités du segment et on apporte une petite correction
     point1 = (ligne[:,0,0].min() + int(cos(pi/2-theta_top)*3), ligne[:,0,1].max() - int(sin(pi/2-theta_top)*3))
     point2 = (ligne[:,0,0].max() - int(cos(pi/2-theta_top)*4), ligne[:,0,1].min() + int(sin(pi/2-theta_top)*4))
+
+    img_hough_2 = cv2.cvtColor(img_canny, cv2.COLOR_GRAY2BGR)
     #on affiche ces deux points
-    img_resultat = cv2.circle(img_resultat, point1, 10, [255,0,255], 2)
-    img_resultat = cv2.circle(img_resultat, point2, 10, [0,0,255], 2)
-    img_resultat = cv2.putText(img_resultat, "prise des points 1 et 2 executee en : "+str(time.clock()-debut)+" s", (8,80), cv2.FONT_HERSHEY_PLAIN, 1, 128)
-    cv2.imshow("resultat", img_resultat)
+    img_hough_2 = cv2.circle(img_hough_2, point1, 10, [0,255,0], 2)
+    img_hough_2 = cv2.circle(img_hough_2, point2, 10, [0,255,0], 2)
+    img_hough_2 = cv2.putText(img_hough_2, "prise des points 1 et 2 executee en : "+str(time.clock()-debut)+" s", (8,80), cv2.FONT_HERSHEY_PLAIN, 1, 128)
+    cv2.imshow("resultat", img_hough_2)
 
 
 
@@ -215,7 +212,7 @@ while cv2.waitKey(pause)!=27:
         cv2.imshow("resultat", img_resultat)
         cv2.waitKey(100)
         continue
-    img_hough_2 = affiche_ligne(img_canny, lignes, 255)
+    img_hough_2 = affiche_ligne(img_hough_2, lignes, 255)
     img_hough_2 = cv2.putText(img_hough_2, "execute en "+str(time.clock()-debut)+" s", (8,40), cv2.FONT_HERSHEY_PLAIN, 1, 255)
     cv2.imshow("Hough 2", img_hough_2)
 
@@ -268,11 +265,27 @@ while cv2.waitKey(pause)!=27:
     theta1 = droite1[0][0][1]
     rho2 = droite2[0][0][0]
     theta2 = droite2[0][0][1]
+
+    #on recalcule les points 1 et 2 plus précisemment
+    det = cos(theta1)*sin(theta_top)-sin(theta1)*cos(theta_top)
+    if det==0:
+        img_resultat = cv2.putText(img_resultat, "ERREUR : calcul du point d'intersection", (img_resultat.shape[1]//10,img_resultat.shape[0]//3), cv2.FONT_HERSHEY_PLAIN, 2, 255, thickness=2)
+        cv2.imshow("resultat", img_resultat)
+        cv2.waitKey(100)
+        continue
+    point1 = ( int((1/det)*(rho1*sin(theta_top)-rho_top*sin(theta1))) , int((1/det)*(-rho1*cos(theta_top)+rho_top*cos(theta1))) )
+    det = cos(theta2)*sin(theta_top)-sin(theta2)*cos(theta_top)
+    if det==0:
+        img_resultat = cv2.putText(img_resultat, "ERREUR : calcul du point d'intersection", (img_resultat.shape[1]//10,img_resultat.shape[0]//3), cv2.FONT_HERSHEY_PLAIN, 2, 255, thickness=2)
+        cv2.imshow("resultat", img_resultat)
+        cv2.waitKey(100)
+        continue
+    point2 = ( int((1/det)*(rho2*sin(theta_top)-rho_top*sin(theta2))) , int((1/det)*(-rho2*cos(theta_top)+rho_top*cos(theta2))) )
+
     point3 = (point1[0]-int(L_rouge*cos(pi/2 - theta1)), point1[1]+int(L_rouge*sin(pi/2 - theta1)))
     point4 = (point2[0]-int(L_bleu*cos(pi/2 - theta2)), point2[1]+int(L_bleu*sin(pi/2 - theta2)))
 
 
-    img_hough_2 = cv2.cvtColor(img_hough_2, cv2.COLOR_GRAY2BGR)
     img_hough_2 = affiche_ligne(img_hough_2, droite1, [0,128,255], 2)
     img_hough_2 = affiche_ligne(img_hough_2, droite2, [255,0,255], 2)
 
@@ -290,7 +303,7 @@ while cv2.waitKey(pause)!=27:
         plt.plot(L_theta, L_rho, marker='+', linestyle=' ')
         plt.xlabel("theta hough 1")
         plt.ylabel("rho hough 1")
-        #plt.show()
+        plt.show()
 
     img_hough_2 = cv2.circle(img_hough_2, point1, 10, [255,0,255], 2)
     img_hough_2 = cv2.circle(img_hough_2, point2, 10, [0,0,255], 2)
@@ -298,6 +311,8 @@ while cv2.waitKey(pause)!=27:
     img_hough_2 = cv2.circle(img_hough_2, point4, 10, [0,0,255], 2)
     cv2.imshow("Hough 2", img_hough_2)
 
+    img_resultat = cv2.circle(img_resultat, point1, 10, [255,0,255], 2)
+    img_resultat = cv2.circle(img_resultat, point2, 10, [0,0,255], 2)
     img_resultat = cv2.circle(img_resultat, point3, 10, [255,0,255], 2)
     img_resultat = cv2.circle(img_resultat, point4, 10, [0,0,255], 2)
     img_resultat = cv2.putText(img_resultat, "temps total d'execution : "+str(time.clock()-debut_tot)+" s", (8,30), cv2.FONT_HERSHEY_PLAIN, 2, 255, thickness=2)

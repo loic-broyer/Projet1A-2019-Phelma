@@ -6,32 +6,31 @@ from fonctions_v0_6 import threshold
 
 #########
 #paramètres à donner
-L_rouge = 240
-L_bleu = 215
+L_rouge = 106
+L_bleu = 98
 
-nb_vote_min = 300
+nb_vote_min = 180
 reso_angle = 2
 pause = 900
 luminosite = 10
 nb_dilatation = 4
-t_masque=200
 seuil_canny=50
 
 nb_vote_min_2 = 90
 angle_min = int(pi*1000/2)
 angle_max = int(pi*1000)-200
-reso_angle_2 = 4
+reso_angle_2 = 2
 
 
 def reference(img_init):
     """retourne les coordonnées des quatre points sur l'image passée en argument, retourne aussi un entier indiquant si la détection a fonctionnée"""
+
+    img = img_init[0:350,0:500]
+    img_canny = cv2.Canny(img, 2*seuil_canny, seuil_canny)
+
     #création d'un masque pour ignorer une partie de l'image
-    masque = np.zeros((720, 790), np.uint8)
-    masque = cv2.fillConvexPoly(masque, np.array([[[0,t_masque],[0,790],[790,790],[790,0],[t_masque,0]]], dtype=np.int32), color=255)
-
-
-    img = img_init[:,0:img_init.shape[1]//2+100]#on ne traite que la partie gauche de l'image
-    img_canny = cv2.Canny(img, 2*seuil_canny, seuil_canny, 3)
+    masque = np.zeros((img.shape[0], img.shape[1]), np.uint8)
+    masque = cv2.fillConvexPoly(masque, np.array([[[100,350],[0,200],[0,100],[300,0],[400,0],[500,100],[500,200],[200,350]]], dtype=np.int32), color=255)
     img_canny = np.bitwise_and(masque, img_canny)#supprime de la détection le coin en haut à gauche
 
 
@@ -43,7 +42,7 @@ def reference(img_init):
     #1° = 0.017rad
     #La fonction HoughLines renvoie une liste de droites données en coordonnées polaires (rho, theta)
 
-    lignes = cv2.HoughLines(img_canny, 1, reso_angle/1000, nb_vote_min, min_theta=0.3, max_theta=0.8)
+    lignes = cv2.HoughLines(img_canny, 1, reso_angle/1000, nb_vote_min, min_theta=1, max_theta=1.2)
     if type(lignes)==type(None):
         return 0, (0,0), (0,0), (0,0), (0,0)#ERREUR
 
@@ -147,6 +146,17 @@ def reference(img_init):
     theta1 = droite1[0][0][1]
     rho2 = droite2[0][0][0]
     theta2 = droite2[0][0][1]
+
+    #on recalcule les points 1 et 2 plus précisemment
+    det = cos(theta1)*sin(theta_top)-sin(theta1)*cos(theta_top)
+    if det==0:
+        return 0, (0,0), (0,0), (0,0), (0,0)#ERREUR
+    point1 = ( int((1/det)*(rho1*sin(theta_top)-rho_top*sin(theta1))) , int((1/det)*(-rho1*cos(theta_top)+rho_top*cos(theta1))) )
+    det = cos(theta2)*sin(theta_top)-sin(theta2)*cos(theta_top)
+    if det==0:
+        return 0, (0,0), (0,0), (0,0), (0,0)#ERREUR
+    point2 = ( int((1/det)*(rho2*sin(theta_top)-rho_top*sin(theta2))) , int((1/det)*(-rho2*cos(theta_top)+rho_top*cos(theta2))) )
+
     point3 = (point1[0]-int(L_rouge*cos(pi/2 - theta1)), point1[1]+int(L_rouge*sin(pi/2 - theta1)))
     point4 = (point2[0]-int(L_bleu*cos(pi/2 - theta2)), point2[1]+int(L_bleu*sin(pi/2 - theta2)))
 
