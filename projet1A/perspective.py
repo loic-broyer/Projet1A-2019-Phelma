@@ -1,6 +1,7 @@
 #coding: utf-8
 
 import math
+import numpy
 
 #Classe definissant les proprietes principales de la camera et ses getters / setters
 class Camera:
@@ -42,7 +43,7 @@ class Camera:
         self.yShift = y
         self.hauteur = h
         
-    def setOrientation(alpha, omega):
+    def setOrientation(self, alpha, omega):
         self.alpha = alpha
         self.c_alpha = math.cos(alpha)
         self.s_alpha = math.sin(alpha)
@@ -56,65 +57,35 @@ class Camera:
         x = (u*(2.0/self.resoX) - 1) *self.t_beta0
         y = 1
         z = (v*(2.0/self.resoY) - 1) *self.t_gamma0
-	alpha = -3.14
-	max = 1000
-	omega_opt=0
-	alpha_opt=0
-	while alpha <= 3.14:
-	    cos_a = math.cos(alpha)
-	    sin_a = math.sin(alpha)
-	    a = x + y*cos_a - z*sin_a
-	    b = x - y*cos_a + z*sin_a
-	    c = (xi+yi)*(y*sin_a + z*cos_a) / deltaH
-	    a2 = a**2
-	    b2 = b**2
-	    c2 = c**2
-	    sin_o = (c*b + math.sqrt(c2 * b2 - (b2 + a2)*(c2-a2))) / (a2+b2)
-	    if sin_o > 1 or sin_o < -1:
-	        sin_o = (c*b - math.sqrt(c2 * b2 - (b2 + a2)*(c2-a2))) / (a2+b2)
-	        print("zbu")
-	    o = math.arcsin(sin_o)
-	    cos_o = math.cos(o)
-	    x_calc = deltaH*(cos_o*x - sin_o*cos_a*y + sin_o*sin_a*z) / (sin_a*y+cos_a*z)
-	    y_calc = deltaH*(sin_o*x + cos_o*cos_a*y - cos_o*sin_a*z) / (sin_a*y+cos_a*z)
-	    dist = math.sqrt((x_calc-xi)**2 + (y_calc-yi)**2)
-	    if dist < max:
-	        max = dist
-		omega_opt = o
-		alpha_opt = alpha
-	    alpha = alpha+0.1
-	alpha=alpha_opt-0.1
-	max = 1000
-	omega_opt2=0
-	alpha_opt2=0
-	while alpha < alpha_opt + 0.1:
-	    cos_a = math.cos(alpha)
-	    sin_a = math.sin(alpha)
-	    a = x + y*cos_a - z*sin_a
-	    b = x - y*cos_a + z*sin_a
-	    c = (xi+yi)*(y*sin_a + z*cos_a) / deltaH
-	    a2 = a**2
-	    b2 = b**2
-	    c2 = c**2
-	    sin_o = (c*b + math.sqrt(c2 * b2 - (b2 + a2)*(c2-a2))) / (a2+b2)
-	    if sin_o > 1 or sin_o < -1:
-	        sin_o = (c*b - math.sqrt(c2 * b2 - (b2 + a2)*(c2-a2))) / (a2+b2)
-	        print("zbu")
-	    o = math.arcsin(sin_o)
-	    cos_o = math.cos(o)
-	    x_calc = deltaH*(cos_o*x - sin_o*cos_a*y + sin_o*sin_a*z) / (sin_a*y+cos_a*z)
-	    y_calc = deltaH*(sin_o*x + cos_o*cos_a*y - cos_o*sin_a*z) / (sin_a*y+cos_a*z)
-	    dist = math.sqrt((x_calc-xi)**2 + (y_calc-yi)**2)
-	    if dist < max:
-	        max = dist
-		omega_opt2 = o
-		alpha_opt2 = alpha
-	    alpha = alpha+0.1
-	return omega_opt2, alpha_opt2
-        
-def coordImageToCoordReelle(cam, u, v, h):
+        alpha=-3.14
+        max = 1000
+        omega_opt=0
+        alpha_opt=0
+        while alpha <= 3.14:
+            cos_a = math.cos(alpha)
+            sin_a = math.sin(alpha)
+            a = x + y*cos_a - z*sin_a
+            b = x - y*cos_a + z*sin_a
+            c = (xi+yi)*(y*sin_a + z*cos_a) / deltaH
+            a2 = a**2
+            b2 = b**2
+            c2 = c**2
+            tan_o = (c*b + math.sqrt(abs(c2 * b2 - (b2 + a2)*(c2-a2)))) / (a2+b2)
+            o = numpy.arctan(tan_o)
+            cos_o = math.cos(o)
+            x_calc = deltaH*(cos_o*x - tan_o*cos_a*y + tan_o*sin_a*z) / (sin_a*y+cos_a*z)
+            y_calc = deltaH*(tan_o*x + cos_o*cos_a*y - cos_o*sin_a*z) / (sin_a*y+cos_a*z)
+            dist = math.sqrt((x_calc-xi)**2 + (y_calc-yi)**2)
+            if dist < max:
+                max = dist
+                omega_opt = o
+                alpha_opt = alpha
+            alpha = alpha+0.001
+        return omega_opt, alpha_opt
+      
 """coordImageToCoordReelle(cam, u, v, h) : Transforme les coordonnees en pixel sur l'image d'un point correspondant à une balise ou un palet en coordonnees reelles dans le plan de jeu.
-u et v les coordonnees du point sur l'image, h la hauteur de la balise recherchee (palet ou robot), camera l'objet caméra"""
+u et v les coordonnees du point sur l'image, h la hauteur de la balise recherchee (palet ou robot), camera l'objet caméra"""  
+def coordImageToCoordReelle(cam, u, v, h):
 
     #Conversion des coordonnées image en vecteur direction (attention il faut tenir compte du fait que l'image est retournée ou pas)
     x = (u*(2.0/cam.resoX) - 1) *cam.t_beta0
@@ -134,9 +105,13 @@ u et v les coordonnees du point sur l'image, h la hauteur de la balise recherche
     return xTrans, yTrans
     
 #programme de test
-#cam = Camera(18, 1.016, 0, 0.32, 0.54, 0, -4.25, 1836, 3264)
-#(xr, yr1) = coordImageToCoordReelle(cam, 0, 2540, 0)
-#print(yr1)
-#(xr, yr2) = coordImageToCoordReelle(cam, 0, 42, 2)
-#print(yr2)
-#print(yr1-yr2)
+cam = Camera(0.5, 0.885, 0, 0.32, 0.54, 0, 0, 1836, 3264)
+(omega, alpha) = cam.computeOrientation(0.5, 178, 2025, -0.16, 0.20)
+print(alpha)
+print(omega)
+cam.setOrientation(alpha, omega)
+print(" ")
+(xr, yr1) = coordImageToCoordReelle(cam, 178, 2025, 0)
+print(xr)
+print(yr1)
+
