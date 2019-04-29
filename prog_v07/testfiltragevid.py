@@ -13,10 +13,6 @@ from fonctions_v0_6 import *
 
 nom_fichier="photo_test_1"
 
-
-
-
-
 ############################################################
 print("opencv version :", cv2.__version__)
 if cv2.__version__ != "4.0.0":
@@ -29,9 +25,6 @@ assert img_source is not None # vérifie que l'image a bien été chargée
 
 ###################################################
 #réduit la dimension de l'image
-
-
-
 print('dimensions :', img_source.shape)
 print('dtype:', img_source.dtype)
 #img.shape[0] nb de ligne
@@ -77,7 +70,7 @@ while True:
     minDistHough = cv2.getTrackbarPos('minDistHough','trackbar')
     dpHough = cv2.getTrackbarPos('dpHough','trackbar')
 
-    
+
     key = cv2.waitKey(1)
 
     if key == ord('p'):
