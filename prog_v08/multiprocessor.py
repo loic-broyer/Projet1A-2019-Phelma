@@ -7,7 +7,7 @@ def runMultiCore(core, functionPointer, arguments):
 	return_dict = manager.dict()
 	jobs = []
 	for i in range(core):
-		p = multiprocessing.Process(target = functionPointer, args = (return_dict, arguments[i]))
+		p = multiprocessing.Process(target = functionPointer, args = (return_dict)
 		jobs.append(p)
 		p.start()
 	for proc in jobs:

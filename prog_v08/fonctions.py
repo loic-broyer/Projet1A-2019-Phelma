@@ -42,12 +42,31 @@ def sortContourSurface(liste_contour,aire_min,aire_max):
             liste_contour_tries.append(liste_contour[i])
     return liste_contour_tries
 
+def blur(img):
+    #blur the source img and return the result
+    return(cv2.GaussianBlur(img,(7,7), 0))
 
-    
+def convertToHSV(img):
+    return(cv2.cvtColor(img, cv2.COLOR_BGR2HSV))
+
+def opening(img,iterations=1):
+    temp = cv2.erode(img, None, iterations)
+    return(cv2.dilate(temp, None, iterations))
+
+def findContours(img):
+    return(cv2.findContours(img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE))
 
 
-
-
+def ptInZone(pttest,Lpt = [[0, 120], [180, 120], [180, 480], [0, 480]]):
+    if(pttest[0]<=Lpt[1][0]):
+       return(0)##indique que pas dans le rectangle
+    if (pttest[0]<=Lpt[0][0]):
+       return(0)
+    if (pttest[1]<=Lpt[2][1]):
+       return(0)
+    if (pttest[1]>=Lpt[1][1]):
+        return(0)
+    return(1)
 
 
     
