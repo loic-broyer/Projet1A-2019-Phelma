@@ -21,6 +21,7 @@ def point_commun(liste1,liste2,liste3,tolérance):
 ##si on souhaite que présent dans les trois images
 
 ##sinon on peut se contenter que le palets soit dans deux des trois images
+
 def point_commun2(liste1,liste2,liste3,tolerance):
     communs=[]
     nbconcordance=0
