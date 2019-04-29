@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import time
 from math import *
 from fonctions import threshold
 
@@ -10,12 +11,8 @@ def fonctions4pointsref(capture):
         debut = time.clock()
         has_frame, img_init = capture.read()
         if not has_frame:
-            capture.release()#Si on est arrivé à la fin de la vidéo, on la ferme puis la relance
-            capture = cv2.VideoCapture(nom_fichier)
-            has_frame, img_init = capture.read()
-            if not has_frame:
-                print("error reading the frame")
-                break
+            print("error reading the frame")
+            break
 
         img_init = cv2.flip(img_init, -1)#remet dans le bon sens l'image issue de la caméra du Raspberry pi
 
@@ -47,7 +44,7 @@ def fonctions4pointsref(capture):
 
     src_pts = np.mean(etalonnage, axis=0, dtype=np.float32)
     dst_pts = np.array([[0, 120], [180, 120], [180, 480], [0, 480]],dtype=np.float32)
-    return = cv2.getPerspectiveTransform(src_pts, dst_pts)
+    return cv2.getPerspectiveTransform(src_pts, dst_pts)
 
 
 #########
