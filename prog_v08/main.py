@@ -1,61 +1,94 @@
+## imports from other files ##
 from fonctions import *
 from fonctions4pointsref import *
+from multiprocessor import *
 
 
 
 
+## init ##
 
-#init
 
+# specify what you want to capture: 0 is the default webcam or do "path to file"
 capture = cv2.VideoCapture(0)
-
+_,frame = capture.read()
+# compute the aspect ratio of a frame in order to resize later if needed
 ratio = frame.shape[1]/frame.shape[0]
+gameStart = 0
 
-
-#loop before the game starts
-transformMat = fonctions4pointsref(capture)
-
-
-#main loop
-
-
-#routine core
-
-def acqCoordinates(,arguments[i]):
-	has_frame, frame = capture.read()
-	correctedFrame = cv2.warpPerspective(frame,transformMat,(600,600))
-	blurred = blur(correctedFrame)
-	HSV = convertToHSV(blurred)
-
-	thresholdedRed = threshold
-	thresholdedGreen = threshold
-	thresholdedBlue = threshold(HSV,)
-
-	opening(thresholdedRed)
-	opening(thresholdedGreen)
-	opening(thresholdedBlue)
-	
-	lContour = []
-	lContour.append(cv2.findContours(thresholdedRed, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE))
-	lContour.append(cv2.findContours(thresholdedGreen, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE))
-	lContour.append(cv2.findContours(thresholdedBlue, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE))
-	
-	lCenters = []
-	for contour in lContour:
-		lCenters.append(centroid(coutour))
-
-	for i in range(len(lCenters)):
-		if ptInZone(lCenters[i]):
-			_ = lCenters.pop([i])
-
-	return_dict[]
+ 
+#trackbars and display
+cv2.namedWindow('trackbar')
+cv2.createTrackbar('aireMin','trackbar',0,10000,nothing)
+cv2.createTrackbar('aireMax','trackbar',0,10000,nothing)
+cv2.createTrackbar('periMin','trackbar',0,10000,nothing)
+cv2.createTrackbar('periMax','trackbar',0,10000,nothing)
+#Red
+cv2.createTrackbar('HminR','trackbar',0,179,nothing)
+cv2.createTrackbar('HmaxR','trackbar',0,179,nothing)
+cv2.createTrackbar('SminR','trackbar',0,255,nothing)
+cv2.createTrackbar('SmaxR','trackbar',0,255,nothing)
+cv2.createTrackbar('VminR','trackbar',0,255,nothing)
+cv2.createTrackbar('VmaxR','trackbar',0,255,nothing)
+#Green
+cv2.createTrackbar('HminG','trackbar',0,179,nothing)
+cv2.createTrackbar('HmaxG','trackbar',0,179,nothing)
+cv2.createTrackbar('SminG','trackbar',0,255,nothing)
+cv2.createTrackbar('SmaxG','trackbar',0,255,nothing)
+cv2.createTrackbar('VminG','trackbar',0,255,nothing)
+cv2.createTrackbar('VmaxG','trackbar',0,255,nothing)
+#Blue
+cv2.createTrackbar('HminB','trackbar',0,179,nothing)
+cv2.createTrackbar('HmaxB','trackbar',0,179,nothing)
+cv2.createTrackbar('SminB','trackbar',0,255,nothing)
+cv2.createTrackbar('SmaxB','trackbar',0,255,nothing)
+cv2.createTrackbar('VminB','trackbar',0,255,nothing)
+cv2.createTrackbar('VmaxB','trackbar',0,255,nothing)
 
 
 
+## loop before the game starts ##
+while not gameStart:
+    transformMat = fonctions4pointsref(capture)
+    gameStart = 1
 
 
 
-
+## main loop ##
 
 while 1:
+    #trackbars
+    #Red
+    HminR = cv2.getTrackbarPos('HminR','trackbar')
+    HmaxR = cv2.getTrackbarPos('HmaxR','trackbar')
+    SminR = cv2.getTrackbarPos('SminR','trackbar')
+    SmaxR = cv2.getTrackbarPos('SmaxR','trackbar')
+    VminR = cv2.getTrackbarPos('VminR','trackbar')
+    VmaxR = cv2.getTrackbarPos('VmaxR','trackbar')
+    #Green
+    HminG = cv2.getTrackbarPos('HminG','trackbar')
+    HmaxG = cv2.getTrackbarPos('HmaxG','trackbar')
+    SminG = cv2.getTrackbarPos('SminG','trackbar')
+    SmaxG = cv2.getTrackbarPos('SmaxG','trackbar')
+    VminG = cv2.getTrackbarPos('VminG','trackbar')
+    VmaxG = cv2.getTrackbarPos('VmaxG','trackbar')
+    #Blue
+    HminB = cv2.getTrackbarPos('HminB','trackbar')
+    HmaxB = cv2.getTrackbarPos('HmaxB','trackbar')
+    SminB = cv2.getTrackbarPos('SminB','trackbar')
+    SmaxB = cv2.getTrackbarPos('SmaxB','trackbar')
+    VminB = cv2.getTrackbarPos('VminB','trackbar')
+    VmaxB = cv2.getTrackbarPos('VmaxB','trackbar')
+
+    ## press p to play the video and process ##
+    key = cv2.waitKey(1)
+    if key == ord('p'):
+        dictcenters3frames = runMultiCore(3,acqCoordinates,(capture,1,ratio))
+
+    if key == 27:
+        break
+
+cv2.destroyAllWindows()
+
+
 
