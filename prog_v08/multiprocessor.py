@@ -6,11 +6,10 @@ def runMultiCore(core, functionPointer, arguments):
 	manager = multiprocessing.Manager()
 	return_dict = manager.dict()
 	jobs = []
-	for i in range(core):
-		p = multiprocessing.Process(target = functionPointer, args = (return_dict)
+	for i in range(core): 
+		p = multiprocessing.Process(target = functionPointer, args = (return_dict, i, arguments) ) #ajout arg a verifier
 		jobs.append(p)
 		p.start()
 	for proc in jobs:
 		proc.join()
 	return return_dict
-	

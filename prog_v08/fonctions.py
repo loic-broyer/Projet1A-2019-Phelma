@@ -1,6 +1,15 @@
 import cv2
 import numpy as np
 
+
+##init
+
+RED = (255,0,0)
+GREEN = (0,255,0)
+BLUE = (0,0,255)
+COLOR = (RED,GREEN,BLUE)
+
+
 def centroid(contour):
     """Returns the coordinate X and Y of the centroid of the input contour in the form of a tuple"""
     M = cv2.moments(contour)
@@ -67,6 +76,69 @@ def ptInZone(pttest,Lpt = [[0, 120], [180, 120], [180, 480], [0, 480]]):
     if (pttest[1]>=Lpt[1][1]):
         return(0)
     return(1)
+
+## used for trackbars opencv
+def nothing(x):
+    pass
+
+#routine on one core for the multiprocessing function
+# arguments is a tuple arguments[0] = capture 
+# arguments[1] = display (boolean to turn on or off monitoring)
+def acqCoordinates(return_dict,i,arguments):
+    capture = arguments[0]
+    display = arguments[1]
+    ratio = arguments[2]
+    has_frame, frame = capture.read()
+    if not has_frame:
+        print("error reading frame on step i"+ str(i))
+
+    if display:
+        frame = cv2.resize(frame,(int(500*ratio),500))
+
+    correctedFrame = cv2.warpPerspective(frame,transformMat,(600,600))
+    centerBackground = np.copy(correctedFrame)
+    blurred = blur(correctedFrame)
+    HSV = convertToHSV(blurred)
+
+    thresholdedRed = threshold(HSV,HminR,HmaxR,SminR,SmaxR,VminR,VmaxR)
+    thresholdedGreen = threshold(HSV,HminG,HmaxG,SminG,SmaxG,VminG,VmaxR)
+    thresholdedBlue = threshold(HSV,HminB,HmaxB,SminB,SmaxB,VminB,VmaxB)
+
+#determiner et ajuster les seuils
+
+    opening(thresholdedRed)
+    opening(thresholdedGreen)
+    opening(thresholdedBlue)
+    
+    
+    lContourRed = cv2.findContours(thresholdedRed, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+    lContourGreen = cv2.findContours(thresholdedGreen, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+    lContourBlue = cv2.findContours(thresholdedBlue, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+    lContour = [lContourRed, lContourGreen, lContourBlue]
+
+    lCenterRed = []
+    lCenterGreen = []
+    lCenterBlue = []
+    lCenter = [lCenterRed,lCenterGreen,lCenterBlue]
+
+    for i in range (len(lContour)):
+        for contour in lContour[i]:
+            center = centroid(coutour)
+            lCenters[i].append(center)
+
+            if display:
+                cv2.circle(centerBackground,center,COLOR[i])
+
+    if display: 
+        cv2.imshow('window',centerBackground)
+
+    lCentersSorted = []
+    for i in range (len(lCenters)):
+        for center in lCenters[i]:
+            if not ptInZone(center) : #verifier ce truc
+                lCentersSorted.append(center)
+
+    return_dict[i] = lCenters
 
 
     
