@@ -10,11 +10,12 @@ from multiprocessor import *
 
 
 # specify what you want to capture: 0 is the default webcam or do "path to file"
-capture = cv2.VideoCapture(0)
+capture = cv2.VideoCapture("../videos_test/video_rasp_1.avi")
 _,frame = capture.read()
 # compute the aspect ratio of a frame in order to resize later if needed
 ratio = frame.shape[1]/frame.shape[0]
 gameStart = 0
+dictRes = dict()
 
  
 #trackbars and display
@@ -49,7 +50,7 @@ cv2.createTrackbar('VmaxB','trackbar',0,255,nothing)
 
 ## loop before the game starts ##
 while not gameStart:
-    transformMat = fonctions4pointsref(capture)
+    (transformMat, colorMat) = fonctions4pointsref(capture)
     gameStart = 1
 
 
@@ -80,10 +81,15 @@ while 1:
     VminB = cv2.getTrackbarPos('VminB','trackbar')
     VmaxB = cv2.getTrackbarPos('VmaxB','trackbar')
 
+    lTrackbar = [[HminR,HmaxR,SminR,SmaxR,VminR,VmaxR],[HminG,HmaxG,SminG,SmaxG,VminG,VmaxG],[HminB,HmaxB,SminB,SmaxB,VminB,VmaxB]]
+
+
+
+
     ## press p to play the video and process ##
     key = cv2.waitKey(1)
     if key == ord('p'):
-        dictcenters3frames = runMultiCore(3,acqCoordinates,(capture,1,ratio))
+        acqCoordinates(dictRes,0,(capture,1,ratio,transformMat,lTrackbar))
 
     if key == 27:
         break

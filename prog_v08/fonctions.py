@@ -4,9 +4,9 @@ import numpy as np
 
 ##init
 
-RED = (255,0,0)
-GREEN = (0,255,0)
-BLUE = (0,0,255)
+RED = [0,0,255]
+GREEN = [0,255,0]
+BLUE = [255,0,0]
 COLOR = (RED,GREEN,BLUE)
 
 
@@ -88,15 +88,46 @@ def acqCoordinates(return_dict,i,arguments):
     capture = arguments[0]
     display = arguments[1]
     ratio = arguments[2]
+    transformMat = arguments[3]
+    lTrackbar = arguments[4]
+
+
+    HminR = lTrackbar[0][0]
+    HmaxR = lTrackbar[0][1]
+    SminR = lTrackbar[0][2]
+    SmaxR = lTrackbar[0][3]
+    VminR = lTrackbar[0][4]
+    VmaxR = lTrackbar[0][5]
+
+    HminG = lTrackbar[1][0]
+    HmaxG = lTrackbar[1][1]
+    SminG = lTrackbar[1][2]
+    SmaxG = lTrackbar[1][3]
+    VminG = lTrackbar[1][4]
+    VmaxG = lTrackbar[1][5]
+
+    HminB = lTrackbar[2][0] 
+    HmaxB = lTrackbar[2][1] 
+    SminB = lTrackbar[2][2] 
+    SmaxB = lTrackbar[2][3] 
+    VminB = lTrackbar[2][4] 
+    VmaxB = lTrackbar[2][5] 
+
+
+
+
     has_frame, frame = capture.read()
     if not has_frame:
         print("error reading frame on step i"+ str(i))
 
-    if display:
-        frame = cv2.resize(frame,(int(500*ratio),500))
-
+    #frame = cv2.resize(frame,(int(500*ratio),500))
+    frame = cv2.flip(frame, -1)
     correctedFrame = cv2.warpPerspective(frame,transformMat,(600,600))
+    #cv2.imshow("correted",correctedFrame)
     centerBackground = np.copy(correctedFrame)
+
+    cv2.imshow("frame",correctedFrame)
+
     blurred = blur(correctedFrame)
     HSV = convertToHSV(blurred)
 
@@ -105,40 +136,47 @@ def acqCoordinates(return_dict,i,arguments):
     thresholdedBlue = threshold(HSV,HminB,HmaxB,SminB,SmaxB,VminB,VmaxB)
 
 #determiner et ajuster les seuils
-
+    cv2.imshow("thresholdedRed",thresholdedRed)
     opening(thresholdedRed)
     opening(thresholdedGreen)
     opening(thresholdedBlue)
-    
-    
-    lContourRed = cv2.findContours(thresholdedRed, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-    lContourGreen = cv2.findContours(thresholdedGreen, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-    lContourBlue = cv2.findContours(thresholdedBlue, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-    lContour = [lContourRed, lContourGreen, lContourBlue]
 
+
+    lContourRed,_ = cv2.findContours(thresholdedRed, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    lContourGreen,_ = cv2.findContours(thresholdedGreen, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    lContourBlue,_ = cv2.findContours(thresholdedBlue, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    lContour = [lContourRed, lContourGreen, lContourBlue]
     lCenterRed = []
     lCenterGreen = []
     lCenterBlue = []
     lCenter = [lCenterRed,lCenterGreen,lCenterBlue]
-
     for i in range (len(lContour)):
-        for contour in lContour[i]:
-            center = centroid(coutour)
-            lCenters[i].append(center)
+       for contour in lContour[i]:
+            #print(contour)
+            #print("\n")
+            #print(type(contour))
+            #print("\n")
+            center = centroid(contour)
+            lCenter[i].append(center)
 
             if display:
-                cv2.circle(centerBackground,center,COLOR[i])
+                cv2.circle(centerBackground,center,5,COLOR[i])
+    print("lenght of l center red")
+    print(len(lCenterRed))
+    print("lenght of l center green")
+    print(len(lCenterGreen))
+    print("length of l center blue")
+    print(len(lCenterBlue))
 
-    if display: 
+    if display:
         cv2.imshow('window',centerBackground)
 
     lCentersSorted = []
-    for i in range (len(lCenters)):
-        for center in lCenters[i]:
-            if not ptInZone(center) : #verifier ce truc
-                lCentersSorted.append(center)
+    # for i in range (len(lCenter)):
+    #     for center in lCenter[i]:
+    #         if not ptInZone(center) : #verifier ce truc
+    #             lCentersSorted.append(center)
 
-    return_dict[i] = lCenters
+    return_dict[0] = lCenter
 
 
-    
