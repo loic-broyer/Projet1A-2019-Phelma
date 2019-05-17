@@ -48,13 +48,8 @@ def fonctions4pointsref(capture):
 
     src_pts = np.mean(etalonnage, axis=0, dtype=np.float32)
     dst_pts = np.array([[0, 120], [180, 120], [180, 480], [0, 480]],dtype=np.float32)
-<<<<<<< HEAD
     couleurs = np.mean(etal_couleur, axis=0, dtype=np.float32)
     return (cv2.getPerspectiveTransform(src_pts, dst_pts), couleurs)
-=======
-    couleurs = np.mean(etal_couleur, axis=0, dtype=np.int)
-    return cv2.getPerspectiveTransform(src_pts, dst_pts), couleurs
->>>>>>> ca1dca7f93c4805c9d5b0920cfaf4526b9207f3a
 
 
 

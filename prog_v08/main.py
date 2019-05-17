@@ -2,24 +2,29 @@
 from fonctions import *
 from fonctions4pointsref import *
 from multiprocessor import *
+## settings ##
 
-
+auto = 1
+display = 1
 
 
 ## init ##
 
 
-# specify what you want to capture: 0 is the default webcam or do "path to file"
+# specify what you want to capture: 0 is the default webcam or "path to file"
 capture = cv2.VideoCapture("../videos_test/video_rasp_1.avi")
 _,frame = capture.read()
 # compute the aspect ratio of a frame in order to resize later if needed
 ratio = frame.shape[1]/frame.shape[0]
+# variable that keeps track of wether the game has started or not
 gameStart = 0
+#dictionnary that will keep the results (list of centers or pads)
 dictRes = dict()
 
- 
+
 #trackbars and display
 cv2.namedWindow('trackbar')
+cv2.namedWindow('autoColor')
 cv2.createTrackbar('aireMin','trackbar',0,10000,nothing)
 cv2.createTrackbar('aireMax','trackbar',0,10000,nothing)
 cv2.createTrackbar('periMin','trackbar',0,10000,nothing)
@@ -45,6 +50,11 @@ cv2.createTrackbar('SminB','trackbar',0,255,nothing)
 cv2.createTrackbar('SmaxB','trackbar',0,255,nothing)
 cv2.createTrackbar('VminB','trackbar',0,255,nothing)
 cv2.createTrackbar('VmaxB','trackbar',0,255,nothing)
+
+#auto threshold adjust margins
+cv2.createTrackbar("tolH","autoColor",20,40,lambda x: None)
+cv2.createTrackbar("tolS","autoColor",40,80,lambda x: None)
+cv2.createTrackbar("tolV","autoColor",40,80,lambda x: None)
 
 
 
@@ -81,20 +91,21 @@ while 1:
     VminB = cv2.getTrackbarPos('VminB','trackbar')
     VmaxB = cv2.getTrackbarPos('VmaxB','trackbar')
 
+    tolH = cv2.getTrackbarPos("tolH","autoColor")
+    tolS = cv2.getTrackbarPos("tolS","autoColor")
+    tolV = cv2.getTrackbarPos("tolV","autoColor")
+    lAuto = (tolH,tolS,tolV)
     lTrackbar = [[HminR,HmaxR,SminR,SmaxR,VminR,VmaxR],[HminG,HmaxG,SminG,SmaxG,VminG,VmaxG],[HminB,HmaxB,SminB,SmaxB,VminB,VmaxB]]
-
-
-
 
     ## press p to play the video and process ##
     key = cv2.waitKey(1)
     if key == ord('p'):
-        acqCoordinates(dictRes,0,(capture,1,ratio,transformMat,lTrackbar))
+        acqCoordinates(dictRes,0,(capture,display,ratio,transformMat,lTrackbar, colorMat, auto,lAuto))
 
     if key == 27:
         break
 
 cv2.destroyAllWindows()
-
+capture.release()
 
 

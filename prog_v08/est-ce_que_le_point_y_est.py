@@ -44,5 +44,4 @@ def point_commun2(liste1,liste2,liste3,tolerance):
                 L1+=1
                 L2+=1
                 L3+=1
-                
     return(nbconcordance,communs)

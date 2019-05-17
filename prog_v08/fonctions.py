@@ -1,7 +1,6 @@
 import cv2
 import numpy as np
 
-
 ##init
 
 RED = [0,0,255]
@@ -20,14 +19,15 @@ def centroid(contour):
 
 
 def threshold(img,Hmin=0,Hmax=179,Smin=0,Smax=255,Vmin=0,Vmax=255):
+    """convert the img to hsv and apply the desired threshold and returns the thresholded image"""
     HSVImg = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     if Hmin<=Hmax:
-        return cv2.inRange(HSVImg, np.array([Hmin,Smin,Vmin]), np.array([Hmax,Smax,Vmax]))
+        return cv2.inRange(HSVImg, (Hmin,Smin,Vmin), (Hmax,Smax,Vmax))
     else:
         #seuillage de 0 à Hmax
-        img_1 = cv2.inRange(HSVImg, np.array([0,Smin,Vmin]), np.array([Hmax,Smax,Vmax]))
+        img_1 = cv2.inRange(HSVImg, (0,Smin,Vmin), (Hmax,Smax,Vmax))
         #seuillage de Hmin à 179
-        img_2 = cv2.inRange(HSVImg, np.array([Hmin,Smin,Vmin]), np.array([179,Smax,Vmax]))
+        img_2 = cv2.inRange(HSVImg, (Hmin,Smin,Vmin), (179,Smax,Vmax))
         #ou logique entre les deux
         return np.bitwise_or(img_1, img_2)
 
@@ -53,7 +53,7 @@ def sortContourSurface(liste_contour,aire_min,aire_max):
 
 def blur(img):
     #blur the source img and return the result
-    return(cv2.GaussianBlur(img,(7,7), 0))
+    return(cv2.GaussianBlur(img,(3,3), 0))
 
 def convertToHSV(img):
     return(cv2.cvtColor(img, cv2.COLOR_BGR2HSV))
@@ -63,55 +63,86 @@ def opening(img,iterations=1):
     return(cv2.dilate(temp, None, iterations))
 
 def findContours(img):
-    return(cv2.findContours(img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE))
+    return(cv2.findContours(img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)[0])
 
 
-def ptInZone(pttest,Lpt = [[0, 120], [180, 120], [180, 480], [0, 480]]):
-    if(pttest[0]<=Lpt[1][0]):
-       return(0)##indique que pas dans le rectangle
-    if (pttest[0]<=Lpt[0][0]):
-       return(0)
-    if (pttest[1]<=Lpt[2][1]):
-       return(0)
-    if (pttest[1]>=Lpt[1][1]):
-        return(0)
-    return(1)
+def ptInZone(pttest,Lzone = (180,120,480)):
+    """returns a boolean that tells if the point pttest is in the zone"""
+    Xmax = Lzone[0]
+    Ymin = Lzone[1]
+    Ymax = Lzone[2]
+    print("le point testé")
+    print(pttest)
+    if pttest == None:
+        return 1
+    elif pttest[0] < Xmax and pttest[1]< Ymax and pttest[1] > Ymin:
+        return 1
+    else:
+        return 0
+
 
 ## used for trackbars opencv
 def nothing(x):
     pass
 
 #routine on one core for the multiprocessing function
-# arguments is a tuple arguments[0] = capture 
-# arguments[1] = display (boolean to turn on or off monitoring)
 def acqCoordinates(return_dict,i,arguments):
+    #unpack arguments
     capture = arguments[0]
     display = arguments[1]
     ratio = arguments[2]
     transformMat = arguments[3]
     lTrackbar = arguments[4]
+    colorMat = arguments[5]
+    auto = arguments[6]
+    tolH = arguments[7][0]
+    tolS = arguments[7][1]
+    tolV = arguments[7][2]
+
+    if auto :
+        HminR=(colorMat[0, 0]-tolH)%180
+        HmaxR=(colorMat[0, 0]+tolH)%180
+        VminR=colorMat[0, 2]-tolV
+        VmaxR = 255
+        SminR = tolS
+        SmaxR = 255
+
+        HminG=(colorMat[1, 0]-tolH)%180
+        HmaxG=(colorMat[1, 0]+tolH)%180
+        VminG=colorMat[1, 2]-tolV
+        VmaxG = 255
+        SminG = tolS
+        SmaxG = 255
+
+        HminB=(colorMat[2, 0]-tolH)%180
+        HmaxB=(colorMat[2, 0]+tolH)%180
+        VminB=colorMat[2, 2]-tolV
+        VmaxB = 255
+        SminB = tolS
+        SmaxB = 255
 
 
-    HminR = lTrackbar[0][0]
-    HmaxR = lTrackbar[0][1]
-    SminR = lTrackbar[0][2]
-    SmaxR = lTrackbar[0][3]
-    VminR = lTrackbar[0][4]
-    VmaxR = lTrackbar[0][5]
+    else:
+        HminR = lTrackbar[0][0]
+        HmaxR = lTrackbar[0][1]
+        SminR = lTrackbar[0][2]
+        SmaxR = lTrackbar[0][3]
+        VminR = lTrackbar[0][4]
+        VmaxR = lTrackbar[0][5]
 
-    HminG = lTrackbar[1][0]
-    HmaxG = lTrackbar[1][1]
-    SminG = lTrackbar[1][2]
-    SmaxG = lTrackbar[1][3]
-    VminG = lTrackbar[1][4]
-    VmaxG = lTrackbar[1][5]
+        HminG = lTrackbar[1][0]
+        HmaxG = lTrackbar[1][1]
+        SminG = lTrackbar[1][2]
+        SmaxG = lTrackbar[1][3]
+        VminG = lTrackbar[1][4]
+        VmaxG = lTrackbar[1][5]
 
-    HminB = lTrackbar[2][0] 
-    HmaxB = lTrackbar[2][1] 
-    SminB = lTrackbar[2][2] 
-    SmaxB = lTrackbar[2][3] 
-    VminB = lTrackbar[2][4] 
-    VmaxB = lTrackbar[2][5] 
+        HminB = lTrackbar[2][0]
+        HmaxB = lTrackbar[2][1]
+        SminB = lTrackbar[2][2]
+        SmaxB = lTrackbar[2][3]
+        VminB = lTrackbar[2][4]
+        VmaxB = lTrackbar[2][5]
 
 
 
@@ -123,28 +154,21 @@ def acqCoordinates(return_dict,i,arguments):
     #frame = cv2.resize(frame,(int(500*ratio),500))
     frame = cv2.flip(frame, -1)
     correctedFrame = cv2.warpPerspective(frame,transformMat,(600,600))
-    #cv2.imshow("correted",correctedFrame)
     centerBackground = np.copy(correctedFrame)
 
-    cv2.imshow("frame",correctedFrame)
 
     blurred = blur(correctedFrame)
-    HSV = convertToHSV(blurred)
-
-    thresholdedRed = threshold(HSV,HminR,HmaxR,SminR,SmaxR,VminR,VmaxR)
-    thresholdedGreen = threshold(HSV,HminG,HmaxG,SminG,SmaxG,VminG,VmaxR)
-    thresholdedBlue = threshold(HSV,HminB,HmaxB,SminB,SmaxB,VminB,VmaxB)
-
-#determiner et ajuster les seuils
-    cv2.imshow("thresholdedRed",thresholdedRed)
-    opening(thresholdedRed)
-    opening(thresholdedGreen)
-    opening(thresholdedBlue)
+    thresholdedRed = threshold(blurred,HminR,HmaxR,SminR,SmaxR,VminR,VmaxR)
+    thresholdedGreen = threshold(blurred,HminG,HmaxG,SminG,SmaxG,VminG,VmaxR)
+    thresholdedBlue = threshold(blurred,HminB,HmaxB,SminB,SmaxB,VminB,VmaxB)
+    # thresholdedBlue = opening(thresholdedRed)
+    # thresholdedGreen = opening(thresholdedGreen)
+    # thresholdedBlue = opening(thresholdedBlue)
 
 
-    lContourRed,_ = cv2.findContours(thresholdedRed, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    lContourGreen,_ = cv2.findContours(thresholdedGreen, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    lContourBlue,_ = cv2.findContours(thresholdedBlue, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    lContourRed = findContours(thresholdedRed)
+    lContourGreen = findContours(thresholdedGreen)
+    lContourBlue = findContours(thresholdedBlue)
     lContour = [lContourRed, lContourGreen, lContourBlue]
     lCenterRed = []
     lCenterGreen = []
@@ -152,30 +176,31 @@ def acqCoordinates(return_dict,i,arguments):
     lCenter = [lCenterRed,lCenterGreen,lCenterBlue]
     for i in range (len(lContour)):
        for contour in lContour[i]:
-            #print(contour)
-            #print("\n")
-            #print(type(contour))
-            #print("\n")
             center = centroid(contour)
             lCenter[i].append(center)
 
-            if display:
-                cv2.circle(centerBackground,center,5,COLOR[i])
-    print("lenght of l center red")
-    print(len(lCenterRed))
-    print("lenght of l center green")
-    print(len(lCenterGreen))
-    print("length of l center blue")
-    print(len(lCenterBlue))
+            # if display:
+            #     cv2.circle(centerBackground,center,5,COLOR[i])
+
+    lCenterSortedR = []
+    lCenterSortedG = []
+    lCenterSortedB = []
+    lCentersSorted = [lCenterSortedR,lCenterSortedG,lCenterSortedB]
+    for i in range (len(lCenter)):
+        for center in lCenter[i]:
+            print(center)
+            if not ptInZone(center) : #verifier ce truc
+                lCentersSorted[i].append(center)
+                if display:
+                    cv2.circle(centerBackground,center,10,COLOR[i])
 
     if display:
+        cv2.imshow("thresholdedRed",thresholdedRed)
+        cv2.imshow("thresholdedGreen",thresholdedGreen)
+        cv2.imshow("thresholdedBlue",thresholdedBlue)
+        cv2.imshow("frame",correctedFrame)
+        #cv2.imshow("correted",correctedFrame)
         cv2.imshow('window',centerBackground)
-
-    lCentersSorted = []
-    # for i in range (len(lCenter)):
-    #     for center in lCenter[i]:
-    #         if not ptInZone(center) : #verifier ce truc
-    #             lCentersSorted.append(center)
 
     return_dict[0] = lCenter
 
