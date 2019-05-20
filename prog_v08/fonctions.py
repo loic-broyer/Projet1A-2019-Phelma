@@ -202,6 +202,6 @@ def acqCoordinates(return_dict,i,arguments):
         #cv2.imshow("correted",correctedFrame)
         cv2.imshow('window',centerBackground)
 
-    return_dict[0] = lCenter
+    return( lCenterSorted)
 
 

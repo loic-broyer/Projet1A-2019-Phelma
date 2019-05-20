@@ -2,6 +2,7 @@
 from fonctions import *
 from fonctions4pointsref import *
 from multiprocessor import *
+from server import *
 ## settings ##
 
 auto = 1
@@ -20,6 +21,11 @@ ratio = frame.shape[1]/frame.shape[0]
 gameStart = 0
 #dictionnary that will keep the results (list of centers or pads)
 dictRes = dict()
+
+
+sock = initServer(1111)
+
+
 
 
 #trackbars and display
@@ -60,8 +66,12 @@ cv2.createTrackbar("tolV","autoColor",40,80,lambda x: None)
 
 ## loop before the game starts ##
 while not gameStart:
-    (transformMat, colorMat) = fonctions4pointsref(capture)
-    gameStart = 1
+    print(gameStart)
+    gameStart = netWaitForStart(sock)
+    print(gameStart)
+    print("\n")
+    #(transformMat, colorMat) = fonctions4pointsref(capture)
+    # gameStart = 1
 
 
 
@@ -97,13 +107,15 @@ while 1:
     lAuto = (tolH,tolS,tolV)
     lTrackbar = [[HminR,HmaxR,SminR,SmaxR,VminR,VmaxR],[HminG,HmaxG,SminG,SmaxG,VminG,VmaxG],[HminB,HmaxB,SminB,SmaxB,VminB,VmaxB]]
 
-    ## press p to play the video and process ##
+    ## press p to play the video and process, doesnt work on raspi ##
     key = cv2.waitKey(1)
     if key == ord('p'):
         acqCoordinates(dictRes,0,(capture,display,ratio,transformMat,lTrackbar, colorMat, auto,lAuto))
 
+    # routineServer(sock)
     if key == 27:
         break
+
 
 cv2.destroyAllWindows()
 capture.release()
