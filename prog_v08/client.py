@@ -22,11 +22,11 @@ def requeteClient(ip, usedPort, reqObj):
 	sock.connect((ip, usedPort))
 	data_str = pickle.dumps(reqObj)
 	sock.send(data_str)
-	reponse = sock.recv(requestSize)
-    	while(not sys.getsizeof(reponse) == requestSize):
-        	reponse+=sock.recv(requestSize)
-    	repObj = pickle.loads(reponse)
-	return repObj
+	#reponse = sock.recv(requestSize)
+	#while(not sys.getsizeof(reponse) == requestSize):
+	#	reponse+=sock.recv(requestSize)
+	#repObj = pickle.loads(reponse)
+	#return repObj
 
 reqObj = requestObject(1, 6, 0)
 requeteClient(ipAdress, port, reqObj)
