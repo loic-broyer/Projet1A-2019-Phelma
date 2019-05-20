@@ -33,27 +33,28 @@ def routineServer(sock):
 	print("Connexion from %s %s" % (ip, port))
 	#Reception de l'objet requete
 	data = clientsocket.recv(requestSize)
-	while(not sys.getsizeof(data) == requestSize):
-		data+=clientsocket.recv(requestSize)
-	reqObj = pickle.loads(data)
-	#Reponse à la requete
-	if(reqObj.reqType == 0):	#Pull setup status
-		data_str = pickle.dumps(gameVariables[0])
-		clientsocket.send(data_str)
-	elif(reqObj.reqType == 1):	#Push setup status
-		gameVariables[0][reqObj.robot] = 1
-	elif(reqObj.reqType == 2):	#Pull score
-		data_str = pickle.dumps(gameVariables[1])
-		clientsocket.send(data_str)
-	elif(reqObj.reqType == 3):	#Push score (TODO : voir si on a besoin de controle)
-		gameVariables[1] += reqObj.argument
-	elif(reqObj.reqType == 4):	#Pull coords
-		data_str = pickle.dumps(gameVariables[2])
-		clientsocket.send(data_str)
-	elif(reqObj.reqType == 5):	#Push coords (TODO : voir si on a besoin de controle)
-		gameVariables[2][reqObj.robot] = reqObj.argument
-	else:
-		print("Erreur : Code requete inconnu.")
+	if(sys.getsizeof(data) != 0):
+		while(not sys.getsizeof(data) == requestSize):
+			data+=clientsocket.recv(requestSize)
+		reqObj = pickle.loads(data)
+		#Reponse à la requete
+		if(reqObj.reqType == 0):	#Pull setup status
+			data_str = pickle.dumps(gameVariables[0])
+			clientsocket.send(data_str)
+		elif(reqObj.reqType == 1):	#Push setup status
+			gameVariables[0][reqObj.robot] = 1
+		elif(reqObj.reqType == 2):	#Pull score
+			data_str = pickle.dumps(gameVariables[1])
+			clientsocket.send(data_str)
+		elif(reqObj.reqType == 3):	#Push score (TODO : voir si on a besoin de controle)
+			gameVariables[1] += reqObj.argument
+		elif(reqObj.reqType == 4):	#Pull coords
+			data_str = pickle.dumps(gameVariables[2])
+			clientsocket.send(data_str)
+		elif(reqObj.reqType == 5):	#Push coords (TODO : voir si on a besoin de controle)
+			gameVariables[2][reqObj.robot] = reqObj.argument
+		else:
+			print("Erreur : Code requete inconnu.")
 
 #Routine d'attente (requiert un spam constant du robot pour marcher)
 def netWaitForStart(sock):
@@ -62,11 +63,14 @@ def netWaitForStart(sock):
 	print("Connexion from %s %s" % (ip, port))
 	#Reception de l'objet requete
 	data = clientsocket.recv(requestSize)
-	while(not sys.getsizeof(data) == requestSize):
-		data+=clientsocket.recv(requestSize)
-	reqObj = pickle.loads(data)
-	if(reqObj.reqType == 6):
-		return 1
+	if(sys.getsizeof(data) != 0):
+		while(not sys.getsizeof(data) == requestSize):
+			data+=clientsocket.recv(requestSize)
+		reqObj = pickle.loads(data)
+		if(reqObj.reqType == 6):
+			return 1
+		else:
+			return 0
 	else:
 		return 0
 
