@@ -67,7 +67,9 @@ def routineServer(sock, cList):
 
 #Routine d'attente (requiert un spam constant du robot pour marcher)
 def netWaitForStart(sock, ipExperience, port):
-	sock.listen(10)
+	a = sock.listen(10)
+	print(a)
+
 	(clientsocket, (ip, port)) = sock.accept()
 	print("Connexion from %s %s" % (ip, port))
 	#Reception de l'objet requete

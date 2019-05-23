@@ -11,6 +11,10 @@ display = 1
 
 ## init ##
 
+#init réseau
+ipExperience = 8
+port = 1111 
+socket = initServer(port)
 
 # specify what you want to capture: 0 is the default webcam or "path to file"
 capture = cv2.VideoCapture(0)
@@ -23,7 +27,7 @@ gameStart = 0
 dictRes = dict()
 
 
-socket = initServer(1111)
+
 
 
 #trackbars and display
@@ -64,7 +68,7 @@ cv2.createTrackbar("tolV","autoColor",40,80,lambda x: None)
 
 ## loop before the game starts ##
 while not gameStart:
-    (transformMat, colorMat) = fonctions4pointsref(capture,socket)
+    (transformMat, colorMat) = fonctions4pointsref(capture,socket,ipExperience,port)
     
 
 
