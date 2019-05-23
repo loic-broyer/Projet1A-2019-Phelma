@@ -5,7 +5,7 @@ from multiprocessor import *
 from server import *
 ## settings ##
 
-auto = 1
+auto = 0
 display = 1
 
 
@@ -13,19 +13,17 @@ display = 1
 
 
 # specify what you want to capture: 0 is the default webcam or "path to file"
-capture = cv2.VideoCapture("../videos_test/video_rasp_1.avi")
+capture = cv2.VideoCapture(0)
 _,frame = capture.read()
 # compute the aspect ratio of a frame in order to resize later if needed
 ratio = frame.shape[1]/frame.shape[0]
 # variable that keeps track of wether the game has started or not
 gameStart = 0
-#dictionnary that will keep the results (list of centers or pads)
+#not used in the final version dictionnary that will keep the results (list of centers or pads)
 dictRes = dict()
 
 
-sock = initServer(1111)
-
-
+socket = initServer(1111)
 
 
 #trackbars and display
@@ -66,12 +64,8 @@ cv2.createTrackbar("tolV","autoColor",40,80,lambda x: None)
 
 ## loop before the game starts ##
 while not gameStart:
-    print(gameStart)
-    gameStart = netWaitForStart(sock)
-    print(gameStart)
-    print("\n")
-    #(transformMat, colorMat) = fonctions4pointsref(capture)
-    # gameStart = 1
+    (transformMat, colorMat) = fonctions4pointsref(capture,socket)
+    
 
 
 
@@ -104,13 +98,19 @@ while 1:
     tolH = cv2.getTrackbarPos("tolH","autoColor")
     tolS = cv2.getTrackbarPos("tolS","autoColor")
     tolV = cv2.getTrackbarPos("tolV","autoColor")
+
     lAuto = (tolH,tolS,tolV)
     lTrackbar = [[HminR,HmaxR,SminR,SmaxR,VminR,VmaxR],[HminG,HmaxG,SminG,SmaxG,VminG,VmaxG],[HminB,HmaxB,SminB,SmaxB,VminB,VmaxB]]
 
     ## press p to play the video and process, doesnt work on raspi ##
     key = cv2.waitKey(1)
-    if key == ord('p'):
-        acqCoordinates(dictRes,0,(capture,display,ratio,transformMat,lTrackbar, colorMat, auto,lAuto))
+    lCenter = acqCoordinates(dictRes,0,(capture,display,ratio,transformMat,lTrackbar, colorMat, auto,lAuto))
+    
+    #envoi de la liste des centres sur le réseau
+    envoiDesCoordonnees(sock,cList)
+
+
+
 
     # routineServer(sock)
     if key == 27:
@@ -119,5 +119,3 @@ while 1:
 
 cv2.destroyAllWindows()
 capture.release()
-
-
