@@ -1,7 +1,6 @@
 #coding utf-8
 
 import socket
-import pickle
 import sys
 
 usedPort = 1111

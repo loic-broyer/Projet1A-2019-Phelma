@@ -3,12 +3,15 @@ import numpy as np
 import time
 from math import *
 from fonctions import threshold
+import socket
+import sys
 
-def fonctions4pointsref(capture):
+def fonctions4pointsref(capture,socket): #attend une pression sur echap ou un signal réseau
     etalonnage = np.full((10,4,2), -1)#tableau pour stocker les dix dernières positions détectées
     etal_couleur = np.full((10,3,3), -1)#tableau pour stocker les dix dernier triplets de couleurs mesurées
     i=-1#indice pour écrire dans les deux tableaux
-    while cv2.waitKey(20)!=27:
+    while cv2.waitKey(20)!=27 or not gameStart:
+        gameStart = netWaitForStart(socket)
         debut = time.clock()
         has_frame, img_init = capture.read()
         if not has_frame:

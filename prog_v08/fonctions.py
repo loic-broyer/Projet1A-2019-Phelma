@@ -33,7 +33,7 @@ def threshold(img,Hmin=0,Hmax=179,Smin=0,Smax=255,Vmin=0,Vmax=255):
 
 
 def sortContourPerimeter(liste_contour,perimetre_min,perimetre_max):
-    #Tri des contours suivant leur périmètre et leur taille en x et en y:
+    """sort the contours and keeps the ones between permitre_min and permitre_max"""
     liste_contour_tries=[]
     for i in range(len(liste_contour)):
         if len(liste_contour[i])>=perimetre_min and len(liste_contour[i])<=perimetre_max:
@@ -42,8 +42,7 @@ def sortContourPerimeter(liste_contour,perimetre_min,perimetre_max):
     return liste_contour_tries
 
 def sortContourSurface(liste_contour,aire_min,aire_max):
-    #Tri des contours
-    #supprime les contours qui ont une aire trop petite
+    """sort the contours and keeps the ones between permitre_min and permitre_max"""
     liste_contour_tries=[]
     for i in range(len(liste_contour)):
         aire = cv2.contourArea(liste_contour[i])
@@ -52,17 +51,20 @@ def sortContourSurface(liste_contour,aire_min,aire_max):
     return liste_contour_tries
 
 def blur(img):
-    #blur the source img and return the result
+    """blur the source img and return the result"""
     return(cv2.GaussianBlur(img,(3,3), 0))
 
 def convertToHSV(img):
+    """convert the BGR opencv image to HSV colorspace"""
     return(cv2.cvtColor(img, cv2.COLOR_BGR2HSV))
 
 def opening(img,iterations=1):
+    """does an opening(erode then dilate, clear little objects) on img with 1 iteration by default""" 
     temp = cv2.erode(img, None, iterations)
     return(cv2.dilate(temp, None, iterations))
 
 def findContours(img):
+    """find the contours in the img"""
     return(cv2.findContours(img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)[0])
 
 
@@ -71,8 +73,8 @@ def ptInZone(pttest,Lzone = (180,120,480)):
     Xmax = Lzone[0]
     Ymin = Lzone[1]
     Ymax = Lzone[2]
-    print("le point testé")
-    print(pttest)
+    #print("le point testé")
+    #print(pttest)
     if pttest == None:
         return 1
     elif pttest[0] < Xmax and pttest[1]< Ymax and pttest[1] > Ymin:
@@ -98,6 +100,7 @@ def acqCoordinates(return_dict,i,arguments):
     tolH = arguments[7][0]
     tolS = arguments[7][1]
     tolV = arguments[7][2]
+    distPx = 20
 
     if auto :
         HminR=(colorMat[0, 0]-tolH)%180
@@ -120,8 +123,6 @@ def acqCoordinates(return_dict,i,arguments):
         VmaxB = 255
         SminB = tolS
         SmaxB = 255
-
-
     else:
         HminR = lTrackbar[0][0]
         HmaxR = lTrackbar[0][1]
@@ -178,21 +179,35 @@ def acqCoordinates(return_dict,i,arguments):
        for contour in lContour[i]:
             center = centroid(contour)
             lCenter[i].append(center)
+            if display:
+                cv2.circle(centerBackground,center,5,COLOR[i])
 
-            # if display:
-            #     cv2.circle(centerBackground,center,5,COLOR[i])
+
 
     lCenterSortedR = []
     lCenterSortedG = []
     lCenterSortedB = []
-    lCentersSorted = [lCenterSortedR,lCenterSortedG,lCenterSortedB]
+    lCenterSorted = [lCenterSortedR,lCenterSortedG,lCenterSortedB]
     for i in range (len(lCenter)):
         for center in lCenter[i]:
-            print(center)
+            #print(center)
             if not ptInZone(center) : #verifier ce truc
-                lCentersSorted[i].append(center)
+                lCenterSorted[i].append(center)
                 if display:
                     cv2.circle(centerBackground,center,10,COLOR[i])
+
+
+
+
+    lCenterSortedZone = [[],[],[]]
+    max = 600 -distPx
+    min = distPx
+    for i in range (len(lCenterSorted)):
+        for center in lCenterSorted[i]:
+            if center[1]<max:
+                lCenterSortedZone[i].append(center)
+                if display:
+                    cv2.circle(centerBackground,center,15,COLOR[i])
 
     if display:
         cv2.imshow("thresholdedRed",thresholdedRed)
@@ -202,6 +217,5 @@ def acqCoordinates(return_dict,i,arguments):
         #cv2.imshow("correted",correctedFrame)
         cv2.imshow('window',centerBackground)
 
-    return( lCenterSorted)
-
+    return(lCenter)
 
