@@ -48,8 +48,13 @@ def envoiDesCoordonnees(sock, cList):
 def routineServer(sock, cList):
     
 	#Ecoute reseau
-	sock.listen(10)
-	(clientsocket, (ip, port)) = sock.accept()
+	sock.settimeout(1)
+	try:
+		sock.listen(10)
+		(clientsocket, (ip, port)) = sock.accept()
+	except(socket.timeout):
+		return 0
+	sock.settimeout(0)
 	print("Connexion from %s %s" % (ip, port))
 	#Reception de l'objet requete
 	reqObj = requestObject(0,0)
@@ -67,8 +72,13 @@ def routineServer(sock, cList):
 
 #Routine d'attente (requiert un spam constant du robot pour marcher)
 def netWaitForStart(sock, ipExperience, port):
-	sock.listen(10)
-	(clientsocket, (ip, port)) = sock.accept()
+	sock.settimeout(1)
+	try:
+		sock.listen(10)
+		(clientsocket, (ip, port)) = sock.accept()
+	except(socket.timeout):
+		return 0
+	sock.settimeout(0)
 	print("Connexion from %s %s" % (ip, port))
 	#Reception de l'objet requete
 	reqObj = requestObject(0,0)
