@@ -7,7 +7,7 @@ import numpy as np
 import pickle
 
 #Pour le reseau local, il semblerait que l'ip par defaut du routeur (serveur heberge dessus) soit 10.42.0.1
-ipAdress = "10.42.0.66"
+ipAdress = "192.168.4.1"
 port = 1111
 robot = 1
 imgSize = 307395

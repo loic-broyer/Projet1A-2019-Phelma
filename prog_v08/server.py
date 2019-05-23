@@ -67,7 +67,7 @@ def routineServer(sock, cList):
 		print("Erreur : Code requete inconnu.")
 
 #Routine d'attente (requiert un spam constant du robot pour marcher)
-def netWaitForStart(sock):
+def netWaitForStart(sock, ipExperience, port):
 	sock.listen(10)
 	(clientsocket, (ip, port)) = sock.accept()
 	print("Connexion from %s %s" % (ip, port))
@@ -77,8 +77,11 @@ def netWaitForStart(sock):
 	reqObj.reqType = int(data.decode())
 	data = clientsocket.recv(requestSize)
 	reqObj.robot = int(data.decode())
-	if(reqObj.reqType == 2):
+	if(reqObj.reqType == 2):	#Declenchement du protocole de demarrage
 		sock.send(wifiFormatInt(1, 5).encode())
+		sock2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		sock.connect((ipExperience, port))
+		sock.send("START".encode())
 		return 1
 	else:
 		sock.send(wifiFormatInt(0, 5).encode())
