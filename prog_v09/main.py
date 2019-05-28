@@ -110,8 +110,6 @@ while 1:
     #envoiDesCoordonnees(socket,lCenter)
 
 
-
-
     routineServer(socket, lCenter)
     if key == 27:
         break

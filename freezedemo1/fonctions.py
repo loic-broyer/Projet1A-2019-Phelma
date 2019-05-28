@@ -6,8 +6,7 @@ import numpy as np
 RED = [0,0,255]
 GREEN = [0,255,0]
 BLUE = [255,0,0]
-PURPLE = (255, 51, 153)
-COLOR = (RED,GREEN,BLUE,PURPLE)
+COLOR = (RED,GREEN,BLUE)
 
 
 def centroid(contour):
@@ -46,6 +45,9 @@ def sortContourSurface(liste_contour,aire_min,aire_max):
     """sort the contours and keeps the ones between permitre_min and permitre_max"""
     liste_contour_tries=[]
     for i in range(len(liste_contour)):
+        aire = cv2.contourArea(liste_contour[i])
+        if aire >= aire_min and aire <= aire_max :
+            liste_contour_tries.append(liste_contour[i])
     return liste_contour_tries
 
 def blur(img):
@@ -121,14 +123,6 @@ def acqCoordinates(return_dict,i,arguments):
         VmaxB = 255
         SminB = tolS
         SmaxB = 255
-       
-        HminP = 114
-        HmaxP = 155
-        VminP= colorMat[2, 2]-tolV
-        VmaxP = 255
-        SminP = tolS
-        SmaxP = 255
-
     else:
         HminR = lTrackbar[0][0]
         HmaxR = lTrackbar[0][1]
@@ -168,37 +162,34 @@ def acqCoordinates(return_dict,i,arguments):
     thresholdedRed = threshold(blurred,HminR,HmaxR,SminR,SmaxR,VminR,VmaxR)
     thresholdedGreen = threshold(blurred,HminG,HmaxG,SminG,SmaxG,VminG,VmaxR)
     thresholdedBlue = threshold(blurred,HminB,HmaxB,SminB,SmaxB,VminB,VmaxB)
-    thresholdedPurple = threshold(blurred,HminP,HmaxP,SminP,SmaxP,VminP,VmaxP)
-
     # thresholdedBlue = opening(thresholdedRed)
     # thresholdedGreen = opening(thresholdedGreen)
     # thresholdedBlue = opening(thresholdedBlue)
-    # thresholdedPlue = opening(thresholdedPlue)
+
 
     lContourRed = findContours(thresholdedRed)
     lContourGreen = findContours(thresholdedGreen)
     lContourBlue = findContours(thresholdedBlue)
-    lContourPurple = findContours(thresholdedPlue)
-    lContour = [lContourRed, lContourGreen, lContourBlue, lContourPurple]
+    lContour = [lContourRed, lContourGreen, lContourBlue]
     lCenterRed = []
     lCenterGreen = []
     lCenterBlue = []
-    lCenterPurple = []
-    lCenter = [lCenterRed,lCenterGreen,lCenterBlue,lCenterPurple]
+    lCenter = [lCenterRed,lCenterGreen,lCenterBlue]
+    #print(lContour)
     for i in range (len(lContour)):
        for contour in lContour[i]:
             center = centroid(contour)
-            lCenter[i].append(center)
-            if display:
-                cv2.circle(centerBackground,center,5,COLOR[i])
+            if(not center == None):
+                lCenter[i].append(center)
+                if display:
+                    cv2.circle(centerBackground,center,5,COLOR[i])
 
 
 
-    lCenterSortedP = []
     lCenterSortedR = []
     lCenterSortedG = []
     lCenterSortedB = []
-    lCenterSorted = [lCenterSortedR,lCenterSortedG,lCenterSortedB,lCenterSortedP]
+    lCenterSorted = [lCenterSortedR,lCenterSortedG,lCenterSortedB]
     for i in range (len(lCenter)):
         for center in lCenter[i]:
             #print(center)
@@ -227,6 +218,5 @@ def acqCoordinates(return_dict,i,arguments):
         cv2.imshow("frame",correctedFrame)
         #cv2.imshow("correted",correctedFrame)
         cv2.imshow('window',centerBackground)
-
     return(lCenter)
 
